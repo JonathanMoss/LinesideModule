@@ -4,9 +4,6 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 
 /**
  * This class provides the Line Side Module Functionality.
@@ -131,16 +128,16 @@ public class LineSideModule {
                     }
                     LineSideModule.dataLogger.sendToDataLogger("", true, true);
                 } else {
-                    System.out.println("FAILED");
+                    LineSideModule.dataLogger.sendToDataLogger("FAILED", true, true);
                     LineSideModule.ExitCommandLine("ERR: Cannot obtain Points details from the database.");
                 }
             } catch (SQLException ex) {
-                System.out.println("FAILED");
+                LineSideModule.dataLogger.sendToDataLogger("FAILED", true, true);
                 LineSideModule.ExitCommandLine("ERR: Cannot obtain Points details from the database.");
             }
             
         // 7) Build the Controlled Signals.
-            System.out.print("Connected to remote DB - looking for Controlled Signals assigned to this Line Side Module...");
+            LineSideModule.dataLogger.sendToDataLogger("Connected to remote DB - looking for Controlled Signals assigned to this Line Side Module...", true, false);
             try {
                 rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM Controlled_Signals WHERE parentLinesideModule = %d;", lsmIndexKey));
                 int recordsReturned = 0;
@@ -149,30 +146,30 @@ public class LineSideModule {
                         CONTROLLED_SIGNAL_ARRAY.add(new Controlled_Signal(rs.getString("prefix"), rs.getString("identity"), Controlled_Signal_Type.valueOf(rs.getString("type"))));
                         recordsReturned ++;
                     } catch (Exception ex) {
-                        System.out.println("FAILED");
+                        LineSideModule.dataLogger.sendToDataLogger("FAILED", true, true);
                         LineSideModule.ExitCommandLine("ERR: Cannot obtain Controlled Signal details from the database.");
                     }
                 }
                 if (recordsReturned == 0) {
-                    System.out.println("FAILED");
+                    LineSideModule.dataLogger.sendToDataLogger("FAILED", true, true);
                     LineSideModule.ExitCommandLine("ERR: Cannot obtain Controlled Signal details from the database.");
                 }
-                System.out.println("OK ");
+                LineSideModule.dataLogger.sendToDataLogger("OK ", true, true);
                 System.out.println();
-                System.out.println("Controlled Signal\tType\t\t   Current Aspect");
-                System.out.println("----------------------------------------------------------");
+                LineSideModule.dataLogger.sendToDataLogger("Controlled Signal\tType\t\t   Current Aspect", true, true);
+                LineSideModule.dataLogger.sendToDataLogger("----------------------------------------------------------", true, true);
                 for (int i = 0; i < CONTROLLED_SIGNAL_ARRAY.size(); i++) {
-                    System.out.println(String.format("%s\t\t\t%s\t\t%s", CONTROLLED_SIGNAL_ARRAY.get(i).getFullSignalIdentity(), CONTROLLED_SIGNAL_ARRAY.get(i).getSignalType().toString(), CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString()));
+                    LineSideModule.dataLogger.sendToDataLogger(String.format("%s\t\t\t%s\t\t%s", CONTROLLED_SIGNAL_ARRAY.get(i).getFullSignalIdentity(), CONTROLLED_SIGNAL_ARRAY.get(i).getSignalType().toString(), CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString()), true, true);
                 }
                 System.out.println();
             } catch (SQLException ex) {
-                System.out.println("FAILED");
+                LineSideModule.dataLogger.sendToDataLogger("FAILED", true, true);
                 LineSideModule.ExitCommandLine("ERR: Cannot obtain Controlled Signal details from the database.");
             }
             
             
         // 8) Build the non-controlled signals.
-            System.out.print("Connected to remote DB - looking for non-controlled Signals assigned to this Line Side Module...");
+            LineSideModule.dataLogger.sendToDataLogger("Connected to remote DB - looking for non-controlled Signals assigned to this Line Side Module...", true, false);
             try {
                 rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM Non_Controlled_Signals WHERE parentLinesideModule = %d;", lsmIndexKey));
                 
@@ -184,30 +181,30 @@ public class LineSideModule {
                                 Function.valueOf(rs.getString("function")), rs.getString("applicable_Signal")));
                         recordsReturned ++;
                     } catch (Exception ex) {
-                        System.out.println("FAILED");
+                        LineSideModule.dataLogger.sendToDataLogger("FAILED", true, true);
                         LineSideModule.ExitCommandLine("ERR: Cannot obtain Non-Controlled Signal details from the database.");
                     }
                 }
                 if (recordsReturned == 0) {
-                    System.out.println("FAILED");
+                    LineSideModule.dataLogger.sendToDataLogger("FAILED", true, true);
                     LineSideModule.ExitCommandLine("ERR: Cannot obtain Non-Controlled Signal details from the database.");
                 }
-                System.out.println("OK ");
+                LineSideModule.dataLogger.sendToDataLogger("OK ", true, true);
                 System.out.println();
 
-                System.out.println("Non-Controlled Signal\tType\t\t\tFunction\tCurrent Aspect");
-                System.out.println("---------------------------------------------------------------------------------------------");
+                LineSideModule.dataLogger.sendToDataLogger("Non-Controlled Signal\tType\t\t\tCurrent Aspect\tFunction", true, true);
+                LineSideModule.dataLogger.sendToDataLogger("---------------------------------------------------------------------------------------------", true, true);
                 for (int i = 0; i < NON_CONTROLLED_SIGNAL_ARRAY.size(); i++) {
-                    System.out.println(String.format("%s\t\t\t%s\t\t%s\t\t%s", NON_CONTROLLED_SIGNAL_ARRAY.get(i).getSignalIdentity(),NON_CONTROLLED_SIGNAL_ARRAY.get(i).getType(), 
-                             NON_CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect(), NON_CONTROLLED_SIGNAL_ARRAY.get(i).getFunction()));
+                    LineSideModule.dataLogger.sendToDataLogger(String.format("%s\t\t\t%s\t\t%s\t\t%s", NON_CONTROLLED_SIGNAL_ARRAY.get(i).getSignalIdentity(),NON_CONTROLLED_SIGNAL_ARRAY.get(i).getType(), 
+                             NON_CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect(), NON_CONTROLLED_SIGNAL_ARRAY.get(i).getFunction()), true, true);
                 }
                 System.out.println();
             } catch (SQLException ex) {
-                System.out.println("FAILED");
+                LineSideModule.dataLogger.sendToDataLogger("FAILED", true, true);
                 LineSideModule.ExitCommandLine("ERR: Cannot obtain Non-Controlled Signal details from the database.");
             }
         // 9) Build the Train Detection Sections.
-            System.out.print("Connected to remote DB - looking for Train Detection Sections assigned to this Line Side Module...");
+            LineSideModule.dataLogger.sendToDataLogger("Connected to remote DB - looking for Train Detection Sections assigned to this Line Side Module...", true, false);
             try {
                 rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM Train_Detection WHERE parentLinesideModule = %d;", lsmIndexKey));
                 int recordsReturned = 0;
@@ -216,30 +213,31 @@ public class LineSideModule {
                         TRAIN_DETECTION_ARRAY.add(new TrainDetection(rs.getString("identity"), TD_Type.valueOf(rs.getString("type"))));
                         recordsReturned ++;
                     } catch (Exception ex) {
-                        System.out.println("FAILED");
+                        LineSideModule.dataLogger.sendToDataLogger("FAILED", true, true);
                         LineSideModule.ExitCommandLine("ERR: Cannot obtain Train Detection details from the database.");
                     }
                 }
                 if (recordsReturned == 0) {
-                    System.out.println("FAILED");
+                    LineSideModule.dataLogger.sendToDataLogger("FAILED", true, true);
                     LineSideModule.ExitCommandLine("ERR: Cannot obtain Train Detection details from the database.");
                 }
-                System.out.println("OK ");
+                LineSideModule.dataLogger.sendToDataLogger("OK ", true, true);
                 System.out.println();
-                System.out.println("Train Detection Section\tType\t\t\tStatus");
-                System.out.println("----------------------------------------------------------");
+                LineSideModule.dataLogger.sendToDataLogger("Train Detection Section\tType\t\t\tStatus", true, true);
+                LineSideModule.dataLogger.sendToDataLogger("----------------------------------------------------------", true, true);
                 for (int i = 0; i < TRAIN_DETECTION_ARRAY.size(); i++) {
-                    System.out.println(String.format("%s\t\t\t%s\t\t%s", TRAIN_DETECTION_ARRAY.get(i).getIdentity(), TRAIN_DETECTION_ARRAY.get(i).getType().toString(), TRAIN_DETECTION_ARRAY.get(i).getDetectionStatus()));
+                    LineSideModule.dataLogger.sendToDataLogger(String.format("%s\t\t\t%s\t\t%s", TRAIN_DETECTION_ARRAY.get(i).getIdentity(), 
+                            TRAIN_DETECTION_ARRAY.get(i).getType().toString(), TRAIN_DETECTION_ARRAY.get(i).getDetectionStatus()), true, true);
                 }
                 System.out.println();
             } catch (SQLException ex) {
-                System.out.println("FAILED");
+                LineSideModule.dataLogger.sendToDataLogger("FAILED", true, true);
                 LineSideModule.ExitCommandLine("ERR: Cannot obtain Train Detection details from the database.");
             }
         
         // 10) Open a connection to the Remote Interlocking.
-            System.out.print("Attempt a connection with the Remote Interlocking...");
-            System.out.println("FAILED");
+            LineSideModule.dataLogger.sendToDataLogger("Attempt a connection with the Remote Interlocking...", true, false);
+            LineSideModule.dataLogger.sendToDataLogger("FAILED", true, true);
             
         // 11) Wait for State Changes or Messages From the Remote Intelocking.
 
