@@ -152,6 +152,8 @@ public class LineSideModule {
                 System.out.println("FAILED");
                 LineSideModule.ExitCommandLine("ERR: Cannot obtain Controlled Signal details from the database.");
             }
+            
+            
         // 8) Build the non-controlled signals.
             System.out.print("Connected to remote DB - looking for non-controlled Signals assigned to this Line Side Module...");
             System.out.println("FAILED");
@@ -199,10 +201,12 @@ public class LineSideModule {
            
        }
        
-       // This is an example of how to move the points.
+       //A few examples...
        try {
            
            POINTS_ARRAY.get(Points.returnPointIndex("940")).movePointsUnderPower(PointsPosition.REVERSE);
+           System.out.println(CONTROLLED_SIGNAL_ARRAY.get(Controlled_Signal.returnControlledSignalIndex("CE175")).getCurrentAspect());
+           System.out.println(TRAIN_DETECTION_ARRAY.get(TrainDetection.returnDetectionIndex("T92")).getDetectionStatus());
             
        } catch (NullPointerException npE) {
            

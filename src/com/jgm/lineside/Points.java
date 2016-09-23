@@ -231,7 +231,6 @@ public class Points {
     /**
      * Where Points objects are instantiated within an array, this method returns the associated index integer (Assuming this is the case).
      * Further, to be effective, all points should be instantiated within a single array.
-     * If no match can be found, then the integer 9999 is returned.
      * 
      * This method is required by the Technicians Interface and Interlocking Components.
      * 

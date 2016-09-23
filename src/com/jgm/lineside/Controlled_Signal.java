@@ -1,6 +1,7 @@
 package com.jgm.lineside;
 
 import java.util.Arrays;
+import java.util.HashMap;
 
 /**
  * This class provides the blueprint for a physical representation of a controlled signal.
@@ -16,6 +17,8 @@ public class Controlled_Signal {
     private final String prefix;
     private final String id;
     private final LampStatus[] signalLamp;
+    private final static HashMap <String, Integer> SIGNAL_HM = new HashMap <>(); // Map to store each Signal Index and Signal Identity.
+    private static int signalTally = 0; // A static class variable to contain an integer regarding how many signals have been created.
     
     /**
      * This is the constructor method for the Signal Class.
@@ -43,7 +46,7 @@ public class Controlled_Signal {
         this.signalType = signalType;
         
         // Setup the initial aspect.
-        this.currentAspect = Aspects.RED;
+        this.currentAspect = this.signalType.returnApplicableAspects()[0];
        
         
         // Setting up a signal lamp for each aspect, except the aspects that cannot be shown - such as black!.
@@ -60,8 +63,27 @@ public class Controlled_Signal {
             this.signalLamp [i] = LampStatus.OK;
             //System.out.println(String.format("%s aspect lamp: %s", this.signalType.returnApplicableAspects()[i], this.signalLamp[i].toString()));
         }
-                
+        
+        Controlled_Signal.SIGNAL_HM.put(String.format("%s%s", this.prefix, this.id),Controlled_Signal.signalTally);
+        Controlled_Signal.signalTally ++;
+        
     }
+    
+     /**
+     * Where Controlled_Signal objects are instantiated within an array, this method returns the associated index integer (Assuming this is the case).
+     * Further, to be effective, all signals should be instantiated within a single array.
+     * 
+     * This method is required by the Technicians Interface and Interlocking Components.
+     * 
+     * @param identity a <code>String</code> indicating the identity of the points.
+     * @return <code>integer</code> representing the array index of the Controlled Signal object within the array.
+     */
+    public static int returnControlledSignalIndex(String identity) {
+        
+        return Controlled_Signal.SIGNAL_HM.get(identity);
+            
+    }
+    
     
     /**
      * This method causes a signal lamp to shown as either 'blown' or 'ok' - simulating a traditional filament failure or its restoration.
