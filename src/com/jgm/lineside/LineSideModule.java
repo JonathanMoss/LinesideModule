@@ -22,8 +22,7 @@ public class LineSideModule {
     private static String riIdentity;
     
     // Define arrays to receive and create the points objects.
-    private static Points[] pts;
-    private static ArrayList <String> pointsArray = new ArrayList <>();
+    private static final ArrayList <Points> POINTS_ARRAY = new ArrayList <>();
   
     // Data-Logger Server Connection details
     private static String dlHost; // The IP address of the Data-Logger server.
@@ -52,20 +51,15 @@ public class LineSideModule {
             }
             
         // 2) Connect to the Database and obtain a few details about the LinesideModule based on the argument passed in 1.
-            
             try {
                 rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM Lineside_Module WHERE identity = '%s';",lsmIdentity));
                 rs.first();
                 lsmIndexKey = (int) rs.getLong("index_key");
                 riIndexKey = (int) rs.getLong("remote_interlocking_index");
-                
                 System.out.println("Connected to remote DB - looking for Line Side Module details...OK");
-                
             } catch (SQLException ex) {
-                
                 System.out.println("Connecting to remote DB - looking for Line Side Module details...FAILED");
                 LineSideModule.ExitCommandLine("ERR: Cannot obtain LineSide Module details from the database.");
-                
             }
             
         // 3) Obtain the Remote Interlocking Connection Details.
@@ -76,34 +70,25 @@ public class LineSideModule {
                 riHost = rs.getString("ip_address");
                 riPort = rs.getString("port_number");
                 riIdentity = rs.getString("Identity");
-                
                 System.out.print("OK ");
                 System.out.println(String.format("[%s@%s:%s]", riIdentity, riHost, riPort));
-                
             } catch (SQLException ex) {
-                
                 System.out.println("FAILED");
                 LineSideModule.ExitCommandLine("ERR: Cannot obtain Remote Interlocking details from the database.");
-                
             }
             
         // 4) Obtain the DataLogger Module Connection Details.
             System.out.print("Connected to remote DB - looking for Data Logger details...");
             try {
-                
                 rs = MySqlConnect.getDbCon().query("SELECT * FROM Data_Logger;");
                 rs.first();
                 dlHost = rs.getString("ip_address");
                 dlPort = rs.getString("port_number");
-
                 System.out.print("OK ");
                 System.out.println(String.format("[%s:%s]",dlHost, dlPort));
-                
             } catch (SQLException ex) {
-                
                 System.out.println("FAILED");
                 LineSideModule.ExitCommandLine("ERR: Cannot obtain Data Logger details from the database.");
-                
             }
             
         // 5) Open a connection to the Data Logger.
@@ -112,27 +97,30 @@ public class LineSideModule {
         
         // 6) Build the Points.
             System.out.print("Connected to remote DB - looking for Points assigned to this Line Side Module...");
-            
             try {
-                
                 rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM Points WHERE parentLinesideModule = %d;", lsmIndexKey));
-                
+                int recordsReturned = 0;
                 while (rs.next()) {
-
-                    pointsArray.add((String) rs.getString("Identity"));
-                    
+                    POINTS_ARRAY.add(new Points(rs.getString("Identity")));
+                    recordsReturned ++;
                 }
-
-                System.out.print("OK ");
-                
+                if (recordsReturned > 0) {
+                    System.out.println("OK ");
+                    System.out.println();
+                    System.out.println("Points\tPosition\tDetected");
+                    System.out.println("------------------------------------");
+                    for (int i = 0; i < POINTS_ARRAY.size(); i++) {
+                        System.out.println(String.format("%s\t%s\t\t%s", POINTS_ARRAY.get(i).getIdentity(), POINTS_ARRAY.get(i).getPointsPosition().toString(), POINTS_ARRAY.get(i).getDetectionStatus().toString()));
+                    }
+                    System.out.println();
+                } else {
+                    System.out.println("FAILED");
+                    LineSideModule.ExitCommandLine("ERR: Cannot obtain Points details from the database.");
+                }
             } catch (SQLException ex) {
-                
                 System.out.println("FAILED");
                 LineSideModule.ExitCommandLine("ERR: Cannot obtain Points details from the database.");
-                
             }
-            
-            buildPoints(pointsArray);
             
         // 7) Build the Controlled Signals.
             System.out.print("Connected to remote DB - looking for Controlled Signals assigned to this Line Side Module...");
@@ -214,7 +202,7 @@ public class LineSideModule {
        // This is an example of how to move the points.
        try {
            
-           pts[Points.returnPointIndex("CE101")].movePointsUnderPower(PointsPosition.REVERSE);
+           POINTS_ARRAY.get(Points.returnPointIndex("940")).movePointsUnderPower(PointsPosition.REVERSE);
             
        } catch (NullPointerException npE) {
            
@@ -224,32 +212,6 @@ public class LineSideModule {
        
     }
     
-    /**
-     * This method fills an array with <i>Points</i> Objects, as defined by the ArrayList passed into it as a parameter.
-     * @param points An <code>ArrayList</code> object containing the identity of each set of points that are assigned to this Lineside Module.
-     */
-    private static void buildPoints(ArrayList points) {
-    
-     // Build the points objects based on the ArrayList passed to the method.
-     
-        try {
-            
-            System.out.println("\n\nPoints\tPos.\tDetected?\n-------------------------");
-            pts = new Points[points.size()];
-            for (int i = 0; i < pts.length; i++) {
-                pts[i] = new Points((String) points.get(i));
-                testMessage(pts[i]);
-            }
-            
-            System.out.println();
-
-        } catch (NullPointerException npE) {
-
-            npE.printStackTrace();
-
-        }
-        
-    }
     /**
      * This method is called when there is a problem with the command line arguments passed.
      * It displays a message, and exits the programme.
@@ -267,7 +229,7 @@ public class LineSideModule {
     private static void testMessage(Points obj) {
         
         String msg;
-        msg = String.format("%s | %s | %s", obj.getIdentity(), obj.getPointsPosition().toString(), obj.getDetectionStatus().toString().toUpperCase());
+        msg = String.format("%s\t%s\t%s", obj.getIdentity(), obj.getPointsPosition().toString(), obj.getDetectionStatus().toString().toUpperCase());
         System.out.println(msg);
         
     }
