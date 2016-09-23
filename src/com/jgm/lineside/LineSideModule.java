@@ -34,6 +34,9 @@ public class LineSideModule {
     // Define arrays to receive and create the controlled signals objects.
     private static final ArrayList <Controlled_Signal> CONTROLLED_SIGNAL_ARRAY = new ArrayList<>();
     
+    // Define arrays to receive and create the controlled signals objects.
+    private static final ArrayList <Automatic_Signal> NON_CONTROLLED_SIGNAL_ARRAY = new ArrayList<>();
+    
     // Define arrays to receive and create the Train Detection objects.
     private static final ArrayList <TrainDetection> TRAIN_DETECTION_ARRAY = new ArrayList<>();
     
@@ -156,7 +159,39 @@ public class LineSideModule {
             
         // 8) Build the non-controlled signals.
             System.out.print("Connected to remote DB - looking for non-controlled Signals assigned to this Line Side Module...");
-            System.out.println("FAILED");
+            try {
+                rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM Non_Controlled_Signals WHERE parentLinesideModule = %d;", lsmIndexKey));
+                
+                int recordsReturned = 0;
+                while (rs.next()) {
+                    try {
+                        NON_CONTROLLED_SIGNAL_ARRAY.add(new Automatic_Signal(rs.getString("prefix"), rs.getString("identity"), 
+                                Automatic_Signal_Type.valueOf(rs.getString("type")), rs.getString("line"), rs.getString("read_direction"), 
+                                Function.valueOf(rs.getString("function")), rs.getString("applicable_Signal")));
+                        recordsReturned ++;
+                    } catch (Exception ex) {
+                        System.out.println("FAILED");
+                        LineSideModule.ExitCommandLine("ERR: Cannot obtain Non-Controlled Signal details from the database.");
+                    }
+                }
+                if (recordsReturned == 0) {
+                    System.out.println("FAILED");
+                    LineSideModule.ExitCommandLine("ERR: Cannot obtain Non-Controlled Signal details from the database.");
+                }
+                System.out.println("OK ");
+                System.out.println();
+
+                System.out.println("Non-Controlled Signal\tType\t\t\tFunction\tCurrent Aspect");
+                System.out.println("---------------------------------------------------------------------------------------------");
+                for (int i = 0; i < NON_CONTROLLED_SIGNAL_ARRAY.size(); i++) {
+                    System.out.println(String.format("%s\t\t\t%s\t\t%s\t\t%s", NON_CONTROLLED_SIGNAL_ARRAY.get(i).getSignalIdentity(),NON_CONTROLLED_SIGNAL_ARRAY.get(i).getType(), 
+                             NON_CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect(), NON_CONTROLLED_SIGNAL_ARRAY.get(i).getFunction()));
+                }
+                System.out.println();
+            } catch (SQLException ex) {
+                System.out.println("FAILED");
+                LineSideModule.ExitCommandLine("ERR: Cannot obtain Non-Controlled Signal details from the database.");
+            }
         // 9) Build the Train Detection Sections.
             System.out.print("Connected to remote DB - looking for Train Detection Sections assigned to this Line Side Module...");
             try {
