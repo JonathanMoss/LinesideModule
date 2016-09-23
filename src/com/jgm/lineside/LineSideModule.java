@@ -1,8 +1,12 @@
 package com.jgm.lineside;
 
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 
 /**
  * This class provides the Line Side Module Functionality.
@@ -40,7 +44,9 @@ public class LineSideModule {
     // Define arrays to receive and create the Train Detection objects.
     private static final ArrayList <TrainDetection> TRAIN_DETECTION_ARRAY = new ArrayList<>();
     
-    public static void main(String[] args) {
+    public static DataLoggerClient dataLogger;
+    
+    public static void main(String[] args) throws IOException {
        
         System.out.println("Line Side Module v1.0 - Running startup script...");
         System.out.println("-------------------------------------------------\n");
@@ -96,10 +102,18 @@ public class LineSideModule {
             
         // 5) Open a connection to the Data Logger.
             System.out.print("Attempt a connection with the Data Logger...");
-            System.out.println("FAILED");
+            try {
+                LineSideModule.dataLogger = new DataLoggerClient(LineSideModule.dlHost, Integer.parseInt(LineSideModule.dlPort), LineSideModule.lsmIdentity);
+                dataLogger.start();
+                Thread.sleep(2000);
+                System.out.println("OK");
+            } catch (IOException | InterruptedException ex) {
+                System.out.println("FAILED");
+            }
+
         
         // 6) Build the Points.
-            System.out.print("Connected to remote DB - looking for Points assigned to this Line Side Module...");
+            LineSideModule.dataLogger.sendToDataLogger("Connected to remote DB - looking for Points assigned to this Line Side Module...",true,false);
             try {
                 rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM Points WHERE parentLinesideModule = %d;", lsmIndexKey));
                 int recordsReturned = 0;
@@ -108,14 +122,14 @@ public class LineSideModule {
                     recordsReturned ++;
                 }
                 if (recordsReturned > 0) {
-                    System.out.println("OK ");
+                    LineSideModule.dataLogger.sendToDataLogger("OK ",true,true);
                     System.out.println();
-                    System.out.println("Points\tPosition\tDetected");
-                    System.out.println("------------------------------------");
+                    LineSideModule.dataLogger.sendToDataLogger("Points\tPosition\tDetected", true, true);
+                    LineSideModule.dataLogger.sendToDataLogger("------------------------------------", true, true);
                     for (int i = 0; i < POINTS_ARRAY.size(); i++) {
-                        System.out.println(String.format("%s\t%s\t\t%s", POINTS_ARRAY.get(i).getIdentity(), POINTS_ARRAY.get(i).getPointsPosition().toString(), POINTS_ARRAY.get(i).getDetectionStatus().toString()));
+                        LineSideModule.dataLogger.sendToDataLogger(String.format("%s\t%s\t\t%s", POINTS_ARRAY.get(i).getIdentity(), POINTS_ARRAY.get(i).getPointsPosition().toString(), POINTS_ARRAY.get(i).getDetectionStatus().toString()), true, true);
                     }
-                    System.out.println();
+                    LineSideModule.dataLogger.sendToDataLogger("", true, true);
                 } else {
                     System.out.println("FAILED");
                     LineSideModule.ExitCommandLine("ERR: Cannot obtain Points details from the database.");
