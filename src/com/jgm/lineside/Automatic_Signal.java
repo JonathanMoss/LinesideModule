@@ -77,8 +77,4 @@ enum Function {
     
 }
 
-enum Function {
-    
-    AUTOMATIC, CO_ACTING, REPEATER, BANNER, FIXED, ADJACENT_CONTROL;
-    
-}
+
