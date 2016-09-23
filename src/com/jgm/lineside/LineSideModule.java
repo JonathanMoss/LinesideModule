@@ -187,7 +187,7 @@ public class LineSideModule {
                 }
                 System.out.println("OK ");
                 System.out.println();
-                System.out.println("Train Detection Section\tType\tStatus");
+                System.out.println("Train Detection Section\tType\t\t\tStatus");
                 System.out.println("----------------------------------------------------------");
                 for (int i = 0; i < TRAIN_DETECTION_ARRAY.size(); i++) {
                     System.out.println(String.format("%s\t\t\t%s\t\t%s", TRAIN_DETECTION_ARRAY.get(i).getIdentity(), TRAIN_DETECTION_ARRAY.get(i).getType().toString(), TRAIN_DETECTION_ARRAY.get(i).getDetectionStatus()));
