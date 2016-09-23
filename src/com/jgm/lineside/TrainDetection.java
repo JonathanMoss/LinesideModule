@@ -195,6 +195,14 @@ public class TrainDetection {
     public DetectionStatus getDetectionStatus () {
         return this.detectionStatus;
     }
+    
+    public String getIdentity() {
+        return this.identity;
+    }
+    
+    public TD_Type getType() {
+        return this.type;
+    }
        
     /**
      * This method updates the Remote Interlocking with any status changes.
@@ -205,6 +213,7 @@ public class TrainDetection {
         System.out.println(String.format("TC|%s|%s", this.identity, message));
     }
 }
+
 
 enum DetectionStatus {
     CLEAR, OCCUPIED;
