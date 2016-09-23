@@ -56,6 +56,10 @@ public class Automatic_Signal {
         return this.function;
     }
     
+    public Aspects getCurrentAspect() {
+        return this.currentAspect;
+    }
+    
     /**
     * Where Automatic Signal objects are instantiated within an array, this method returns the associated index integer (Assuming this is the case).
     * Further, to be effective, all Automatic Signal objects should be instantiated within a single array.
