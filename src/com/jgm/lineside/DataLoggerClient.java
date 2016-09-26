@@ -10,6 +10,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 
+
 /**
  * This class provides the functionality to connect to the Data Logger
  * @author Jonathan Moss
@@ -45,7 +46,7 @@ public class DataLoggerClient extends Thread {
     private Boolean connectToServer() throws IOException {
         if (this.conn == null || !this.conn.isConnected()) {
             this.connectionAttempts ++;
-            this.sendToDataLogger(String.format ("Attempting a connection to the Data Logger (Attempt %s)...",this.connectionAttempts),true, false);
+            this.sendToDataLogger(String.format ("Attempting a connection to the Data Logger (Attempt %s/5)...",this.connectionAttempts),true, false);
             this.sockAddress = new InetSocketAddress (InetAddress.getByName(this.dataLoggerIP), this.dataLoggerPort);
             this.conn = new Socket();
             this.conn.connect(sockAddress, 10000);
@@ -91,7 +92,7 @@ public class DataLoggerClient extends Thread {
      * @param carriageReturn A <code>Boolean</code> value, <i>true</i> appends a carriage return to the end of the message, otherwise <i>false</i>.
      * @throws IOException 
      */
-    public synchronized void sendToDataLogger (String message, Boolean console, Boolean carriageReturn) throws IOException, NullPointerException{
+    public synchronized void sendToDataLogger (String message, Boolean console, Boolean carriageReturn) throws IOException {
         if (console) { // If console is set to true, display message on the console.
             System.out.print(String.format("%s%s",message, (carriageReturn) ? "\n" : "" ));
         }
@@ -122,11 +123,15 @@ public class DataLoggerClient extends Thread {
                     }
                     this.whileConnected();
                 }
-            } catch (EOFException eof) { // Server has disconnected
+            } catch (EOFException eof) {  
                 try {
-                    this.closeConnection();
-                } catch (NullPointerException ex) {}
-                this.run();
+                    // Server has disconnected
+                    this.sendToDataLogger("The DataLogger Server has severed the connection", true, true);
+                } catch (IOException | NullPointerException ex) {}
+                    try {
+                        this.closeConnection();
+                    } catch (NullPointerException ex) {}
+                        this.run();
             } catch (ConnectException conEx) { // Cannot find the server
                 try {
                     this.sendToDataLogger(String.format("FAILED\nWARNING: Cannot connect to the Data Logger (Connection Refused) [%s:%s]",
@@ -135,7 +140,7 @@ public class DataLoggerClient extends Thread {
                     try {
                         Thread.sleep(3000);
                     } catch (InterruptedException ex) {}
-                } catch (IOException | NullPointerException ex) {}
+                    } catch (IOException | NullPointerException ex) {}
             } catch (NullPointerException | IOException nullP) {}
         } while (this.connected | this.establishingConnection);
     }
