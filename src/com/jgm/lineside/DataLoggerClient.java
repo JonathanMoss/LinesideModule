@@ -20,10 +20,13 @@ public class DataLoggerClient extends Thread {
     private final int dataLoggerPort; // The port number of the Data Logger
     private DataOutputStream output; // The Socket output stream
     private Socket conn; // The connection object
-    private volatile Boolean connected = true; // A flag that indicates if connected - used to keep the thread live
+    private volatile Boolean connected = false; // A flag that indicates if connected - used to keep the thread live
     private final String lsmIdentity; // The identity of the Line Side Module where a DataLoggerClient is instantiated
     private SocketAddress sockAddress; // The IP/Portnumber socketAddress used in the connection string
     private DataInputStream input; // The input stream - used only to determine if the connection to the Data Logger remains live.
+    private int connectionAttempts = 0; // A variable to hold the connection attempts.
+    private final int maximumConnectionAttempts = 5; // A variable to hold the maximum connection attempts.
+    private Boolean establishingConnection = true; // A variable to flag if a connection is being sought.
     
     /**
      * This is the Constructor Method for the DataLoggerClient class
@@ -39,21 +42,24 @@ public class DataLoggerClient extends Thread {
     }
     
     // This method attempts to establish a connection with the server.
-    private void connectToServer() throws IOException {
-        if (this.conn == null) {
-            this.sendToDataLogger("Attempting a connection to the Data Logger...",true, false);
-            this.sockAddress = new InetSocketAddress (InetAddress.getByName(this.dataLoggerIP), this.dataLoggerPort); 
+    private Boolean connectToServer() throws IOException {
+        if (this.conn == null || !this.conn.isConnected()) {
+            this.connectionAttempts ++;
+            this.sendToDataLogger(String.format ("Attempting a connection to the Data Logger (Attempt %s)...",this.connectionAttempts),true, false);
+            this.sockAddress = new InetSocketAddress (InetAddress.getByName(this.dataLoggerIP), this.dataLoggerPort);
             this.conn = new Socket();
             this.conn.connect(sockAddress, 10000);
-            this.connected = true;
             this.sendToDataLogger(String.format("OK %s", this.conn.toString()), true, true);
+            this.connectionAttempts = 0;
+            return true;
         }
+        return false;
     }
     
     // This method attempts to setup the output and input streams
     private void setupStreams() throws IOException {
-        if (this.conn != null) {
-            this.output  = new DataOutputStream(this.conn.getOutputStream());
+        if (this.conn != null || this.conn.isConnected()) {
+            this.output = new DataOutputStream(this.conn.getOutputStream());
             this.output.writeUTF(this.lsmIdentity);
             this.output.flush();
             this.input = new DataInputStream(this.conn.getInputStream());
@@ -61,20 +67,20 @@ public class DataLoggerClient extends Thread {
     }
     
     // This method is called only when something goes wrong - it makes sure the connection object and input/output streams are closed.
-    private void closeConnection() throws IOException, NullPointerException {
-        this.conn.close();
-        this.output.close();
-        this.input.close();
+    private void closeConnection() {
         this.input = null;
         this.conn = null;
         this.output = null;
+        this.connected = false;
+        this.establishingConnection = true;
     }
     
     // This method ensures that the thread remains live whilst a valid connection to the DataLogger exists.
     private void whileConnected() throws IOException {
-        while (this.connected) {
-            this.input.readUTF(); // This checks if there is still a connection with the server.
-        }
+        // This checks if there is still a connection with the server.
+        if (this.conn != null) {
+            this.input.readUTF();
+        } 
     }
     
     /**
@@ -98,28 +104,39 @@ public class DataLoggerClient extends Thread {
     // This method overrides the run() method from the Thread Class.
     @Override
     public void run() {
-        try {
-            this.connectToServer();
-            this.setupStreams();
-            this.whileConnected();
-            // There is no valid connection to send the message to.
-        } catch (EOFException e) {
+        do {
             try {
-                // The connection with the DataLogger has terminated.
-                this.sendToDataLogger("WARNING: The Data Logger has terminated the connection." ,true,true);
-            } catch (IOException ex) {}
-        } catch (ConnectException con) {
-            try {
-                // Cannot create a connection with the data logger.
-                this.sendToDataLogger(String.format("FAILED\nWARNING: Cannot connect to the Data Logger(Connection Refused) [%s:%s]", 
-                    this.dataLoggerIP, this.dataLoggerPort),true,true);
-            } catch (IOException | NullPointerException ex) {}
-        } catch (IOException e) {
-        } finally {
-            //this.connected = false;
-            try {
-                this.closeConnection();
-            } catch (IOException | NullPointerException ex) {}
-        }
+                if (establishingConnection && this.connectionAttempts <= this.maximumConnectionAttempts) {
+                    if (this.connectionAttempts >= 5) {
+                        this.sendToDataLogger("WARNING: No further connection attempts with the Data Logger shall be made.",
+                            true, true);
+                        this.establishingConnection = false;
+                    } else if (this.connectToServer()) {
+                        this.connected = true;
+                        this.establishingConnection = false;
+                        this.connectionAttempts = 0; 
+                    }
+                } else {
+                    if (this.connected == true && this.conn.isConnected()) {
+                        this.setupStreams();
+                    }
+                    this.whileConnected();
+                }
+            } catch (EOFException eof) { // Server has disconnected
+                try {
+                    this.closeConnection();
+                } catch (NullPointerException ex) {}
+                this.run();
+            } catch (ConnectException conEx) { // Cannot find the server
+                try {
+                    this.sendToDataLogger(String.format("FAILED\nWARNING: Cannot connect to the Data Logger (Connection Refused) [%s:%s]",
+                        this.dataLoggerIP, this.dataLoggerPort),true,true);
+                    this.closeConnection();
+                    try {
+                        Thread.sleep(3000);
+                    } catch (InterruptedException ex) {}
+                } catch (IOException | NullPointerException ex) {}
+            } catch (NullPointerException | IOException nullP) {}
+        } while (this.connected | this.establishingConnection);
     }
 }
