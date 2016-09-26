@@ -1,5 +1,7 @@
 package com.jgm.lineside;
 
+import java.io.IOException;
+
 /**
  * This class is a blueprint for a threaded object that moves the points from one position to another. 
  * @author Jonathan Moss
@@ -36,36 +38,27 @@ public class pointsMovingPower extends Thread {
     * This method formats and sends a message to the Points Object message method.
     */
     private void showStatus() {
-        
         // Create the message.
         String statusMessage = String.format("Points %s | Position %s | Detection %s", this.identity, this.pointObject.getPointsPosition().toString(), this.pointObject.getDetectionStatus().toString().toUpperCase());
         // Send the message.
-        this.pointObject.sendMessage(statusMessage);
+        try {
+            LineSideModule.dataLogger.sendToDataLogger(statusMessage, true, true);
+        } catch (IOException ex) {}
   
     }
     
     @Override
     public void run() {
-        
         this.showStatus(); // Show the current status.
         this.pointObject.dropDetection(); // Remove detection.
         this.pointObject.setPointsPosition(PointsPosition.UNKNOWN); // Move the points to unknown.
         this.showStatus(); // Show the current status.
-        
         try {
-            
             Thread.sleep(this.secondsToMotor * 1000); // Simulate the points taking time to traverse from position A to position B.
-            
-        } catch (InterruptedException ie) {
-            
-            ie.printStackTrace();
-            
-        }
-        
+        } catch (InterruptedException ie) {}
         this.pointObject.setPointsPosition(toPosition); // Show the points in the new position.
         this.pointObject.attemptDetection(); // Attempt to gain detection.
         this.showStatus(); // Show the current status.
         this.pointObject.setPointsAreMoving(false); // Show the points as having finished moving.
-        
     }
 }

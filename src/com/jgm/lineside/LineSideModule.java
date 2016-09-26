@@ -98,15 +98,12 @@ public class LineSideModule {
             }
             
         // 5) Open a connection to the Data Logger.
-            System.out.print("Attempt a connection with the Data Logger...");
             try {
                 LineSideModule.dataLogger = new DataLoggerClient(LineSideModule.dlHost, Integer.parseInt(LineSideModule.dlPort), LineSideModule.lsmIdentity);
+                dataLogger.setName("DataLogger-Thread");
                 dataLogger.start();
                 Thread.sleep(2000);
-                System.out.println("OK");
-            } catch (IOException | InterruptedException ex) {
-                System.out.println("FAILED");
-            }
+            } catch (IOException | InterruptedException ex) {}
 
         
         // 6) Build the Points.
@@ -126,7 +123,7 @@ public class LineSideModule {
                     for (int i = 0; i < POINTS_ARRAY.size(); i++) {
                         LineSideModule.dataLogger.sendToDataLogger(String.format("%s\t%s\t\t%s", POINTS_ARRAY.get(i).getIdentity(), POINTS_ARRAY.get(i).getPointsPosition().toString(), POINTS_ARRAY.get(i).getDetectionStatus().toString()), true, true);
                     }
-                    LineSideModule.dataLogger.sendToDataLogger("", true, true);
+                    System.out.println("");
                 } else {
                     LineSideModule.dataLogger.sendToDataLogger("FAILED", true, true);
                     LineSideModule.ExitCommandLine("ERR: Cannot obtain Points details from the database.");
@@ -134,6 +131,8 @@ public class LineSideModule {
             } catch (SQLException ex) {
                 LineSideModule.dataLogger.sendToDataLogger("FAILED", true, true);
                 LineSideModule.ExitCommandLine("ERR: Cannot obtain Points details from the database.");
+            
+                
             }
             
         // 7) Build the Controlled Signals.
