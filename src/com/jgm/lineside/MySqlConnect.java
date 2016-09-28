@@ -18,7 +18,6 @@ import java.util.ArrayList;
  * @version v1.0 August 2016
  */
 public final class MySqlConnect {
-    
     private Connection conn; // The connection object.
     private Statement statement; // The statement object.
     private static MySqlConnect db; // Holds this instance object.
@@ -35,15 +34,10 @@ public final class MySqlConnect {
      * @return MysqlConnect Database connection object
      */
     public static synchronized MySqlConnect getDbCon() {
-        
         if ( db == null ) {
-            
             db = new MySqlConnect();
-            
         }
-        
         return db;
- 
     }
     
     /**
@@ -53,11 +47,9 @@ public final class MySqlConnect {
      * @throws SQLException
      */
     public ResultSet query(String query) throws SQLException {
-        
         statement = db.conn.createStatement();
         ResultSet res = statement.executeQuery(query);
         return res;
-        
     }
     
     /**
@@ -67,106 +59,72 @@ public final class MySqlConnect {
      * @throws SQLException
      */
     public int insert(String insertQuery) throws SQLException {
-        
         statement = db.conn.createStatement();
         int result = statement.executeUpdate(insertQuery);
         return result;
- 
     }
     
     /**
      * This is the constructor method. It is private to ensure that it is not instantiated from elsewhere.
      */
     private MySqlConnect() {
-        
         if (dbHost == null) { // Check if dbHost has been initialised.
-            
             getDatabaseCredentials(); // If not, get and fill the class variables concerning the database credentials.
-            
         }
-        
         conString = String.format("jdbc:mysql://%s:%s/%s", dbHost, dbPort, dbName); // The db connection String.
-        
         if (this.conn == null) {
-            
             System.out.print("Attempting to establish a connection with the remote DB...");
-            
             try {
-            
                 Class.forName("com.mysql.jdbc.Driver").newInstance();
                 this.conn = (Connection)DriverManager.getConnection(conString, dbUserName, dbPassword);
-                System.out.println("OK");
-            
+                System.out.println(String.format ("%sOK%s", Colour.GREEN.getColour(), Colour.RESET.getColour()));
             } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException sqle) {
-            
-                System.out.println("FAILED [Connection Error]");
+                System.out.println(String.format ("%sFAILED [Connection Error]%s", Colour.RED.getColour(), Colour.RESET.getColour()));
                 System.exit(0);
-            
             }
-        
         }
-      
     }
     
     /**
      * This Method reads the DataBase connection details and credentials from dbAccess.txt
      */
     private synchronized static void getDatabaseCredentials() {
-        
         System.out.print("Attempting to get Database Credentials from dbAccess.txt...");
-        
         try {
-        
             // Setup the input stream.
             InputStream dbSetup  = LineSideModule.class.getResourceAsStream("dbAccess.txt");
             BufferedReader reader = new BufferedReader (new InputStreamReader(dbSetup));
-            
             // Declare method variables.
             String line;
             int linesRead = 0;
-            
             // Read the contents of the file.
             while ((line = reader.readLine())!= null) {
-                
                 if (linesRead >= 5) {
-                    
                     break; // We have reached the limit needed (5 lines).
-                    
                 } else {
-                    
                     DB_CONNECTION_CREDENTIALS.add(line.trim()); // Add the contents of the line into the ArrayList
                     linesRead ++; // Increment the Linesread method variable.
-                    
                 }
-                
             }
-            
             // Check again that we have the correct number of lines/credentials from the file - apply to class variables.
             if (DB_CONNECTION_CREDENTIALS.size() == 5) {
-                
                 dbHost = DB_CONNECTION_CREDENTIALS.get(0);
                 dbPort = DB_CONNECTION_CREDENTIALS.get(1);
                 dbName = DB_CONNECTION_CREDENTIALS.get(2);
                 dbUserName = DB_CONNECTION_CREDENTIALS.get(3);
                 dbPassword = DB_CONNECTION_CREDENTIALS.get(4);
-                System.out.println("OK");
-                
+                System.out.println(String.format ("%sOK%s", Colour.GREEN.getColour(), Colour.RESET.getColour()));
             } else {
-                
                 // Alert the user - close the programme (no point continuing).
-                System.out.println("FAILED - dbAccess.txt contains invalid database credentials.\n");
+                System.out.println(String.format ("%sFAILED%s - %sdbAccess.txt contains invalid database credentials.%s%s",
+                        Colour.RED.getColour(), Colour.RESET.getColour(), Colour.BLUE.getColour(), Colour.RESET.getColour(), LineSideModule.NEW_LINE));
                 System.exit(0);
-                
             }
-            
         } catch (NullPointerException | IOException e) {
-        
             // Alert the user - close the programme (no point continuing).
-            System.out.println("FAILED - Cannot read from dbAccess.txt\n");
+            System.out.println(String.format ("%sFAILED%s - %sCannot read from dbAccess.txt%s%s", 
+                    Colour.RED.getColour(), Colour.RESET.getColour(), Colour.BLUE.getColour(), Colour.RESET.getColour(), LineSideModule.NEW_LINE));
             System.exit(0);
-            
         }
-        
     }
-    
 }

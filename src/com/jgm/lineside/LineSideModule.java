@@ -54,7 +54,7 @@ public class LineSideModule {
             if (args[0].length() == 5) { // We are expecting a String of 5 characters only.
                 lsmIdentity = args[0]; // Set this Lineside Module Identity.
             } else { // Invalid Lineside Module Identity.
-                LineSideModule.ExitCommandLine("ERR: Argument [1] expects a String object representing the LineSide Module Identity.");
+                LineSideModule.ExitCommandLine(String.format("%sERR: Argument [1] expects a String object representing the LineSide Module Identity.%s",Colour.RED.getColour(), Colour.RED.getColour()));
             }
             
         // 2) Connect to the Database and obtain a few details about the LinesideModule based on the argument passed in 1.
@@ -63,10 +63,13 @@ public class LineSideModule {
                 rs.first();
                 lsmIndexKey = (int) rs.getLong("index_key");
                 riIndexKey = (int) rs.getLong("remote_interlocking_index");
-                System.out.println("Connected to remote DB - looking for Line Side Module details...OK");
+                System.out.println(String.format ("Connected to remote DB - looking for Line Side Module details...%sOK%s", 
+                        Colour.GREEN.getColour(), Colour.RESET.getColour()));
             } catch (SQLException ex) {
-                System.out.println("Connecting to remote DB - looking for Line Side Module details...FAILED");
-                LineSideModule.ExitCommandLine("ERR: Cannot obtain LineSide Module details from the database.");
+                System.out.println(String.format ("Connecting to remote DB - looking for Line Side Module details...%sFAILED%s",
+                        Colour.RED.getColour(), Colour.RESET.getColour()));
+                LineSideModule.ExitCommandLine(String.format ("%sERR: Cannot obtain LineSide Module details from the database.%s",
+                        Colour.RED.getColour(), Colour.RESET.getColour()));
             }
             
         // 3) Obtain the Remote Interlocking Connection Details.
@@ -77,11 +80,15 @@ public class LineSideModule {
                 riHost = rs.getString("ip_address");
                 riPort = rs.getString("port_number");
                 riIdentity = rs.getString("Identity");
-                System.out.print("OK ");
-                System.out.println(String.format("[%s@%s:%s]", riIdentity, riHost, riPort));
+                System.out.print(String.format ("%sOK%s ", 
+                        Colour.GREEN.getColour(), Colour.RESET.getColour()));
+                System.out.println(String.format("%s[%s@%s:%s]%s", 
+                        Colour.BLUE.getColour(), riIdentity, riHost, riPort, Colour.RESET.getColour()));
             } catch (SQLException ex) {
-                System.out.println("FAILED");
-                LineSideModule.ExitCommandLine("ERR: Cannot obtain Remote Interlocking details from the database.");
+                System.out.println(String.format ("%sFAILED%s",
+                        Colour.RED.getColour(), Colour.RESET.getColour()));
+                LineSideModule.ExitCommandLine( String.format ("%sERR: Cannot obtain Remote Interlocking details from the database.%s",
+                        Colour.RED.getColour(), Colour.RESET.getColour()));
             }
             
         // 4) Obtain the DataLogger Module Connection Details.
@@ -236,6 +243,7 @@ public class LineSideModule {
         // 10) Open a connection to the Remote Interlocking.
             LineSideModule.dataLogger.sendToDataLogger("Attempt a connection with the Remote Interlocking...", true, false);
             LineSideModule.dataLogger.sendToDataLogger("FAILED", true, true);
+            System.out.println();
             
         // 11) Wait for State Changes or Messages From the Remote Intelocking.
         //TODO

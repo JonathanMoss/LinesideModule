@@ -49,7 +49,7 @@ public class DataLoggerClient extends Thread {
             this.sendToDataLogger(String.format ("Attempting a connection to the Data Logger (Attempt %s/%s)...",this.connectionAttempts, MAX_CON_ATTEMPTS),true, false);
             this.conn = new Socket();
             this.conn.connect(sockAddress, 10000);
-            this.sendToDataLogger(String.format("OK %s", this.conn.toString()), true, true);
+            this.sendToDataLogger(String.format("%sOK %s%s%s", Colour.GREEN.getColour(), Colour.BLUE.getColour(), this.conn.toString(), Colour.RESET.getColour()), true, true);
             this.connectionAttempts = 0;
             return true;
         }
@@ -142,7 +142,6 @@ public class DataLoggerClient extends Thread {
                         this.run();
             } catch (ConnectException conEx) { // Cannot find the server
                 try {
-                    System.out.println("HERE");
                     this.sendToDataLogger(String.format("FAILED%sWARNING: Cannot connect to the Data Logger (Connection Refused) [%s:%s]",
                         LineSideModule.NEW_LINE, this.dataLoggerIP, this.dataLoggerPort),true,true);
                     this.closeConnection();
