@@ -4,7 +4,6 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
 import java.io.IOException;
-import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
@@ -27,8 +26,7 @@ public class DataLoggerClient extends Thread {
     private int connectionAttempts = 0; // A variable to hold the connection attempts.
     private static final int MAX_CON_ATTEMPTS = 5; // A variable to hold the maximum connection attempts.
     private Boolean establishingConnection = true; // A variable to flag if a connection is being sought.
-    private static final String[] ILLEGAL_CHARACTERS = {"[32m", "[0m", "[34m", "[31m"}; // This array contains those ANSI escape characters we do not want to send to the Data Logger.
-    
+
     /**
      * This is the Constructor Method for the DataLoggerClient class
      * @param dataLoggerIP A <code>String</code> containing the IP address of the Data Logger.
@@ -106,10 +104,9 @@ public class DataLoggerClient extends Thread {
         if (console) { // If console is set to true, display message on the console.
             System.out.print(String.format("%s%s", message, (carriageReturn) ? LineSideModule.NEW_LINE : ""));
         }
-        
-        for (String ILLEGAL_CHARACTERS1 : DataLoggerClient.ILLEGAL_CHARACTERS) {
-            if (message.contains(ILLEGAL_CHARACTERS1)) {
-                message = message.replace(ILLEGAL_CHARACTERS1, "");
+        for (int i=0; i < Colour.values().length; i++) {
+            if (message.contains(Colour.values()[i].getColour())) {
+                //message = message.replace(Colour.values()[i].getColour(), "");
             }
         }
         
@@ -118,7 +115,7 @@ public class DataLoggerClient extends Thread {
             this.output.flush(); 
         }
     }
-    
+  
     // This method overrides the run() method from the Thread Class.
     @Override
     public void run() {
@@ -152,7 +149,6 @@ public class DataLoggerClient extends Thread {
                         this.closeConnection();
                     } catch (NullPointerException ex) {}
                         this.run();
-            //} catch (ConnectException conEx) { // Cannot find the server
             } catch (IOException io) {
                 try {
                     this.sendToDataLogger(String.format("%s%s%sWARNING: Cannot connect to the Data Logger (Connection Refused) [%s:%s]%s",
@@ -163,7 +159,7 @@ public class DataLoggerClient extends Thread {
                         Thread.sleep(3000);
                     } catch (InterruptedException ex) {}
                     } catch (IOException | NullPointerException ex) {}
-            } catch (NullPointerException /*| IOException */nullP) {}
+            } catch (NullPointerException np) {}
         } while (this.connected | this.establishingConnection);
     }
 }

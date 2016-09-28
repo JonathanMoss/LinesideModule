@@ -150,15 +150,16 @@ public class LineSideModule {
                         Colour.GREEN.getColour(), LineSideModule.getOK(), Colour.RESET.getColour()),
                         true,true);
                     System.out.println();
-                    LineSideModule.dataLogger.sendToDataLogger(String.format ("%sPoints\tPosition\tDetected%s",
-                        Colour.BLUE.getColour(), Colour.RESET.getColour()),
+                    LineSideModule.dataLogger.sendToDataLogger(String.format ("%s%-8s%-10s%-8s%s",
+                        Colour.BLUE.getColour(), "Points",  "Position", "Detected", Colour.RESET.getColour()),
                         true, true);
-                    LineSideModule.dataLogger.sendToDataLogger(String.format ("%s------------------------------------%s",
+                    LineSideModule.dataLogger.sendToDataLogger(String.format ("%s--------------------------%s",
                         Colour.BLUE.getColour(), Colour.RESET.getColour()), 
                         true, true);
                     for (int i = 0; i < POINTS_ARRAY.size(); i++) {
-                        LineSideModule.dataLogger.sendToDataLogger(String.format("%s%s\t%s\t\t%s%s", 
-                            Colour.BLUE.getColour(), POINTS_ARRAY.get(i).getIdentity(), POINTS_ARRAY.get(i).getPointsPosition().toString(), POINTS_ARRAY.get(i).getDetectionStatus().toString(), Colour.RESET.getColour()),
+                        LineSideModule.dataLogger.sendToDataLogger(String.format("%s%-8s%-10s%-8s%s", 
+                            Colour.BLUE.getColour(), POINTS_ARRAY.get(i).getIdentity(), POINTS_ARRAY.get(i).getPointsPosition().toString(), 
+                            (POINTS_ARRAY.get(i).getDetectionStatus()) ? Colour.GREEN.getColour() + LineSideModule.getOK() + Colour.RESET.getColour() : LineSideModule.getFailed(), Colour.RESET.getColour()),
                             true, true);
                     }
                     System.out.println();
@@ -205,15 +206,17 @@ public class LineSideModule {
                     Colour.GREEN.getColour(), LineSideModule.getOK(), Colour.RESET.getColour()),
                     true,true);
                 System.out.println();
-                LineSideModule.dataLogger.sendToDataLogger(String.format ("%sControlled Signal\tType\t\t   Current Aspect%s",
-                    Colour.BLUE.getColour(), Colour.RESET.getColour())
+                LineSideModule.dataLogger.sendToDataLogger(String.format ("%s%-19s%-19s%-10s%s",
+                    Colour.BLUE.getColour(), "Controlled Signal", "Type", "Current Aspect", Colour.RESET.getColour())
                     , true, true);
-                LineSideModule.dataLogger.sendToDataLogger(String.format ("%s----------------------------------------------------------%s",
+                LineSideModule.dataLogger.sendToDataLogger(String.format ("%s----------------------------------------------------%s",
                     Colour.BLUE.getColour(), Colour.RESET.getColour()), 
                     true, true);
                 for (int i = 0; i < CONTROLLED_SIGNAL_ARRAY.size(); i++) {
-                    LineSideModule.dataLogger.sendToDataLogger(String.format("%s%s\t\t\t%s\t\t%s%s", 
-                        Colour.BLUE.getColour(), CONTROLLED_SIGNAL_ARRAY.get(i).getFullSignalIdentity(), CONTROLLED_SIGNAL_ARRAY.get(i).getSignalType().toString(), CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString(), Colour.RESET.getColour()), 
+                    LineSideModule.dataLogger.sendToDataLogger(String.format("%s%-19s%-19s%-10s%s", 
+                        Colour.BLUE.getColour(), CONTROLLED_SIGNAL_ARRAY.get(i).getFullSignalIdentity(), CONTROLLED_SIGNAL_ARRAY.get(i).getSignalType().toString(), 
+                        (CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect() == Aspects.RED) ? Colour.RED.getColour() + CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString() + Colour.RESET.getColour() : CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString(), 
+                        Colour.RESET.getColour()), 
                         true, true);
                 }
                 System.out.println();
@@ -225,7 +228,7 @@ public class LineSideModule {
                     Colour.RED.getColour(), Colour.RESET.getColour()));
             }
             
-            
+
         // 8) Build the non-controlled signals.
             LineSideModule.dataLogger.sendToDataLogger("Connected to remote DB - looking for non-controlled Signals assigned to this Line Side Module...", true, false);
             try {
@@ -257,16 +260,17 @@ public class LineSideModule {
                     true,true);
                 System.out.println();
 
-                LineSideModule.dataLogger.sendToDataLogger(String.format ("%sNon-Controlled Signal\tType\t\t\tCurrent Aspect\tFunction%s",
-                    Colour.BLUE.getColour(), Colour.RESET.getColour()), 
+                LineSideModule.dataLogger.sendToDataLogger(String.format ("%s%-22s%-18s%-16s%s%s",
+                    Colour.BLUE.getColour(), "Non-Controlled Signal", "Type", "Current Aspect", "Function", Colour.RESET.getColour()), 
                     true, true);
-                LineSideModule.dataLogger.sendToDataLogger(String.format ("%s---------------------------------------------------------------------------------------------%s",
+                LineSideModule.dataLogger.sendToDataLogger(String.format ("%s-----------------------------------------------------------------------%s",
                     Colour.BLUE.getColour(), Colour.RESET.getColour()),
                     true, true);
                 for (int i = 0; i < NON_CONTROLLED_SIGNAL_ARRAY.size(); i++) {
-                    LineSideModule.dataLogger.sendToDataLogger(String.format("%s%s\t\t\t%s\t\t%s\t\t%s%s", 
+                    LineSideModule.dataLogger.sendToDataLogger(String.format("%s%-22s%-18s%-26s%s%s", 
                         Colour.BLUE.getColour(), NON_CONTROLLED_SIGNAL_ARRAY.get(i).getSignalIdentity(),NON_CONTROLLED_SIGNAL_ARRAY.get(i).getType(), 
-                        NON_CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect(), NON_CONTROLLED_SIGNAL_ARRAY.get(i).getFunction(), Colour.RESET.getColour()), 
+                        (NON_CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString().contains("YELLOW") || NON_CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString().contains("WARNING"))? Colour.YELLOW.getColour() + NON_CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString() + Colour.BLUE.getColour() : Colour.RED.getColour() + NON_CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString() + Colour.BLUE.getColour(), 
+                        NON_CONTROLLED_SIGNAL_ARRAY.get(i).getFunction(), Colour.RESET.getColour()), 
                         true, true);
                 }
                 System.out.println();
@@ -305,16 +309,17 @@ public class LineSideModule {
                     Colour.GREEN.getColour(), LineSideModule.getOK(), Colour.RESET.getColour()),
                     true,true);
                 System.out.println();
-                LineSideModule.dataLogger.sendToDataLogger(String.format ("%sTrain Detection Section\tType\t\t\tStatus%s",
-                    Colour.BLUE.getColour(), Colour.RESET.getColour()), 
+                LineSideModule.dataLogger.sendToDataLogger(String.format ("%s%-26s%-18s%s%s",
+                    Colour.BLUE.getColour(), "Train Detection Section", "Type", "Status", Colour.RESET.getColour()), 
                     true, true);
-                LineSideModule.dataLogger.sendToDataLogger(String.format ("%s----------------------------------------------------------%s",
+                LineSideModule.dataLogger.sendToDataLogger(String.format ("%s--------------------------------------------------%s",
                     Colour.BLUE.getColour(), Colour.RESET.getColour()), 
                     true, true);
                 for (int i = 0; i < TRAIN_DETECTION_ARRAY.size(); i++) {
-                    LineSideModule.dataLogger.sendToDataLogger(String.format("%s%s\t\t\t%s\t\t%s%s", 
-                        Colour.BLUE.getColour(), TRAIN_DETECTION_ARRAY.get(i).getIdentity(), 
-                        TRAIN_DETECTION_ARRAY.get(i).getType().toString(), TRAIN_DETECTION_ARRAY.get(i).getDetectionStatus(), Colour.RESET.getColour()), 
+                    LineSideModule.dataLogger.sendToDataLogger(String.format("%s%-26s%-18s%-10s%s", 
+                        Colour.BLUE.getColour(), TRAIN_DETECTION_ARRAY.get(i).getIdentity(), TRAIN_DETECTION_ARRAY.get(i).getType().toString(),
+                        (TRAIN_DETECTION_ARRAY.get(i).getDetectionStatus().toString().contains("CLEAR"))? Colour.GREEN.getColour() + "CLEAR" + Colour.RESET.getColour() : Colour.RED.getColour() + "OCCUPIED" + Colour.RESET.getColour(), 
+                        Colour.RESET.getColour()), 
                         true, true);
                 }
                 System.out.println();
