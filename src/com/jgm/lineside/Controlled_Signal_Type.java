@@ -15,7 +15,6 @@ public enum Controlled_Signal_Type {
     Controlled_Signal_Type(Aspects... applicable_aspects) {
         
         this.applicable_aspects = applicable_aspects;
-        
     }
     
     Aspects[] returnApplicableAspects() {

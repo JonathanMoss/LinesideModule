@@ -41,9 +41,10 @@ public class LineSideModule {
     // Define arrays to receive and create the Train Detection objects.
     private static final ArrayList <TrainDetection> TRAIN_DETECTION_ARRAY = new ArrayList<>();
     
-    public static DataLoggerClient dataLogger;
+    protected static DataLoggerClient dataLogger;
+    protected static final String NEW_LINE = System.lineSeparator();
     
-    public static void main(String[] args) throws IOException {
+    protected static void main(String[] args) throws IOException {
        
         System.out.println("Line Side Module v1.0 - Running startup script...");
         System.out.println("-------------------------------------------------\n");
@@ -96,7 +97,7 @@ public class LineSideModule {
                 System.out.println("FAILED");
                 LineSideModule.ExitCommandLine("ERR: Cannot obtain Data Logger details from the database.");
             }
-            
+            DataLogger:
         // 5) Open a connection to the Data Logger.
             try {
                 LineSideModule.dataLogger = new DataLoggerClient(LineSideModule.dlHost, Integer.parseInt(LineSideModule.dlPort), LineSideModule.lsmIdentity);
@@ -131,8 +132,6 @@ public class LineSideModule {
             } catch (SQLException ex) {
                 LineSideModule.dataLogger.sendToDataLogger("FAILED", true, true);
                 LineSideModule.ExitCommandLine("ERR: Cannot obtain Points details from the database.");
-            
-                
             }
             
         // 7) Build the Controlled Signals.
@@ -239,7 +238,7 @@ public class LineSideModule {
             LineSideModule.dataLogger.sendToDataLogger("FAILED", true, true);
             
         // 11) Wait for State Changes or Messages From the Remote Intelocking.
-
+        //TODO
 
        } else {
            
@@ -248,17 +247,17 @@ public class LineSideModule {
        }
        
        //A few examples...
-       try {
-           
-           POINTS_ARRAY.get(Points.returnPointIndex("940")).movePointsUnderPower(PointsPosition.REVERSE);
-           System.out.println(CONTROLLED_SIGNAL_ARRAY.get(Controlled_Signal.returnControlledSignalIndex("CE175")).getCurrentAspect());
-           System.out.println(TRAIN_DETECTION_ARRAY.get(TrainDetection.returnDetectionIndex("T92")).getDetectionStatus());
-            
-       } catch (NullPointerException npE) {
-           
-           // Points with the specified identity cannot be found.
-           
-       }
+//       try {
+//           
+//           POINTS_ARRAY.get(Points.returnPointIndex("940")).movePointsUnderPower(PointsPosition.REVERSE);
+//           System.out.println(CONTROLLED_SIGNAL_ARRAY.get(Controlled_Signal.returnControlledSignalIndex("CE175")).getCurrentAspect());
+//           System.out.println(TRAIN_DETECTION_ARRAY.get(TrainDetection.returnDetectionIndex("T92")).getDetectionStatus());
+//            
+//       } catch (NullPointerException npE) {
+//           
+//           // Points with the specified identity cannot be found.
+//           
+//       }
        
     }
     

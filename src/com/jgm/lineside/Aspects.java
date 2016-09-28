@@ -6,6 +6,6 @@ package com.jgm.lineside;
  */
 public enum Aspects {
     
-    RED, SINGLE_YELLOW, DOUBLE_YELLOW, GREEN, WARNING, CLEAR, TOP_YELLOW, BLACK;
+    RED, SINGLE_YELLOW, DOUBLE_YELLOW, GREEN, CAUTION, CLEAR, TOP_YELLOW, BLACK;
     
 }
