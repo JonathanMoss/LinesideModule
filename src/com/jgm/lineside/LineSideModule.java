@@ -44,7 +44,7 @@ public class LineSideModule {
     protected static DataLoggerClient dataLogger;
     protected static final String NEW_LINE = System.lineSeparator();
     
-    protected static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException {
        
         System.out.println("Line Side Module v1.0 - Running startup script...");
         System.out.println("-------------------------------------------------\n");
