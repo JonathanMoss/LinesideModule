@@ -77,9 +77,11 @@ public final class MySqlConnect {
             try {
                 Class.forName("com.mysql.jdbc.Driver").newInstance();
                 this.conn = (Connection)DriverManager.getConnection(conString, dbUserName, dbPassword);
-                System.out.println(String.format ("%sOK%s", Colour.GREEN.getColour(), Colour.RESET.getColour()));
+                System.out.println(String.format ("%s%s%s", 
+                    Colour.GREEN.getColour(), LineSideModule.getOK(), Colour.RESET.getColour()));
             } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException sqle) {
-                System.out.println(String.format ("%sFAILED [Connection Error]%s", Colour.RED.getColour(), Colour.RESET.getColour()));
+                System.out.println(String.format ("%s%s [Connection Error]%s", 
+                        Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour()));
                 System.exit(0);
             }
         }
@@ -113,17 +115,18 @@ public final class MySqlConnect {
                 dbName = DB_CONNECTION_CREDENTIALS.get(2);
                 dbUserName = DB_CONNECTION_CREDENTIALS.get(3);
                 dbPassword = DB_CONNECTION_CREDENTIALS.get(4);
-                System.out.println(String.format ("%sOK%s", Colour.GREEN.getColour(), Colour.RESET.getColour()));
+                System.out.println(String.format ("%s%s%s", 
+                    Colour.GREEN.getColour(), LineSideModule.getOK(), Colour.RESET.getColour()));
             } else {
                 // Alert the user - close the programme (no point continuing).
-                System.out.println(String.format ("%sFAILED%s - %sdbAccess.txt contains invalid database credentials.%s%s",
-                        Colour.RED.getColour(), Colour.RESET.getColour(), Colour.BLUE.getColour(), Colour.RESET.getColour(), LineSideModule.NEW_LINE));
+                System.out.println(String.format ("%s%s%s - %sdbAccess.txt contains invalid database credentials.%s%s",
+                    Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour(), Colour.BLUE.getColour(), Colour.RESET.getColour(), LineSideModule.NEW_LINE));
                 System.exit(0);
             }
         } catch (NullPointerException | IOException e) {
             // Alert the user - close the programme (no point continuing).
-            System.out.println(String.format ("%sFAILED%s - %sCannot read from dbAccess.txt%s%s", 
-                    Colour.RED.getColour(), Colour.RESET.getColour(), Colour.BLUE.getColour(), Colour.RESET.getColour(), LineSideModule.NEW_LINE));
+            System.out.println(String.format ("%s%s%s - %sCannot read from dbAccess.txt%s%s", 
+                Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour(), Colour.BLUE.getColour(), Colour.RESET.getColour(), LineSideModule.NEW_LINE));
             System.exit(0);
         }
     }
