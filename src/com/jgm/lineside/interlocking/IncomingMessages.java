@@ -1,7 +1,9 @@
 package com.jgm.lineside.interlocking;
 
 import java.io.DataInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+
 
 
 /**
@@ -17,7 +19,14 @@ public class IncomingMessages extends DataInputStream implements Runnable{
 
     @Override
     public void run() {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        while(true) {
+            try {
+                System.out.println(this.readUTF());
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                break;
+            }
+        }
     }
     
     

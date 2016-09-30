@@ -17,6 +17,8 @@ import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This class provides the Line Side Module Functionality.
@@ -364,7 +366,12 @@ public class LineSideModule {
             LineSideModule.remoteInterlocking = new RemoteInterlockingClient(LineSideModule.riHost, Integer.parseInt(LineSideModule.riPort), LineSideModule.riIdentity);
             LineSideModule.remoteInterlocking.setName("RemoteInterlockingClient");
             LineSideModule.remoteInterlocking.start();
-            
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(LineSideModule.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            LineSideModule.remoteInterlocking.outgoing.sendMessageToRemoteInterlocking("Jonathan Moss");
             
             //System.out.println();
             
