@@ -1,6 +1,5 @@
 package com.jgm.lineside.signals;
 
-import com.jgm.lineside.signals.Aspects;
 import java.util.HashMap;
 
 /**

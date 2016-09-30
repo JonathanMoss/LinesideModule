@@ -1,7 +1,7 @@
 package com.jgm.lineside.datalogger;
 
 /**
- *
+ * This enum provides the ANSI Colour Codes, used to present colour output in the console.
  * @author Jonathan Moss
  */
 public enum Colour {
@@ -21,8 +21,11 @@ public enum Colour {
         this.uniCode = uniCode;
     }
     
+    /**
+     * This method returns the ANSI Escape sequence for the applicable colour.
+     * @return A <code>String</code> representing the ANSI escape sequence for the applicable colour.
+     */
     public String getColour () {
         return uniCode;
     }
-    
 }

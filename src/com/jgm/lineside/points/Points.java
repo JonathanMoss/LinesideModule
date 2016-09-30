@@ -36,11 +36,9 @@ public class Points {
         this.detectionAvailable = DetectionAvailable.BOTH; // Detection is available in both Normal and Reverse
         this.pointsPower = PointsPower.POWER; // The points are operating under power.
         this.pointsAreMoving = false; // Sets the flag indicating that the points are not moving at this moment in time.
-        
         // Add the instance to the static HashMap for indexing later.
         Points.POINTS_HM.put(this.identity, Points.pointsTally);
         Points.pointsTally ++; // Increase the count.
-        
     }
     
     /**
@@ -52,23 +50,14 @@ public class Points {
      * @param seconds An <code>integer</code> representing seconds.
      */
     public void setPowerOperationInterval(int seconds) {
-        
         int maxValue = 60, minValue = 5;
-        
         if (seconds < minValue) {
-            
             this.powerOperationSeconds = minValue;
-            
         } else if (seconds > maxValue) {
-            
             this.powerOperationSeconds = maxValue;
-            
         } else {
-            
             this.powerOperationSeconds = seconds;
-            
         }
-    
     }
     
     /**
@@ -82,9 +71,7 @@ public class Points {
      * @see setDetectionStatus
      */
     public void setDetectionAvailable(DetectionAvailable detectionAvailable) {
-        
         this.detectionAvailable = detectionAvailable;
-        
     }
     
     /**
@@ -98,9 +85,7 @@ public class Points {
      * @see setDetectionStatus
      */
     public DetectionAvailable getDetectionAvailable() {
-        
         return this.detectionAvailable;
-        
     }
     
     /**
@@ -110,7 +95,6 @@ public class Points {
      * 
      */
     public void attemptDetection() {
-        
         switch (this.detectionAvailable) {
             case NORMAL_ONLY:
                 if (this.positionOfPoints == PointsPosition.NORMAL) {
@@ -119,7 +103,6 @@ public class Points {
                     this.setDetectionStatus(false);
                 }
             break;
-            
             case REVERSE_ONLY:
                 if (this.positionOfPoints == PointsPosition.REVERSE) {
                     this.setDetectionStatus(true);
@@ -127,7 +110,6 @@ public class Points {
                     this.setDetectionStatus(false);
                 }
             break;
-            
             case BOTH:
                 if (this.positionOfPoints == PointsPosition.NORMAL || this.positionOfPoints == PointsPosition.REVERSE) {
                     this.setDetectionStatus(true);
@@ -135,12 +117,10 @@ public class Points {
                     this.setDetectionStatus(false);
                 }
             break;
-            
             case NONE:
                 this.setDetectionStatus(false);
             break;
         }
-        
     }
     
     /**
@@ -151,9 +131,7 @@ public class Points {
      * 
      */
     protected void setPointsAreMoving (Boolean arePointsMoving) {
-        
         this.pointsAreMoving = arePointsMoving;
-        
     }
     
     /**
@@ -164,7 +142,6 @@ public class Points {
      * 
      */
     public void movePointsUnderPower (PointsPosition toPosition) {
-        
         // Check of the points are already moving?
         if (!this.pointsAreMoving)  { // Points are not moving.
             // Check if the points are operating under power.
@@ -174,7 +151,6 @@ public class Points {
                     // Check if the points are secured
                     if (!this.arePointsSecured) { // The points are not secured.
                         // Move Points...
-
                             if (this.threadObject == null || this.threadObject.getState() == Thread.State.TERMINATED) {
                                 this.setPointsAreMoving(true);
                                 this.threadObject = new PointsMovingPower(this, toPosition, this.powerOperationSeconds);
@@ -182,38 +158,21 @@ public class Points {
                             } else {
                                 this.sendMessage("Cannot process last request to move the points...");
                             }
-
                     } else {
-
                          this.setDetectionStatus(false); // The points are secured; lose detection.
-
                     }
-
                 } else { // The points are already in the required position.
-
                     this.attemptDetection(); // Attempt detection; the points are under power, and do not need moving.
-
                 }
-
             } else { // Points are not operating under power.
-
                 if (this.getPointsPosition().equals(toPosition)) {
-                    
                     this.attemptDetection();
-                    
                 } else {
-                    
                     this.setDetectionStatus(false); // Lose detection.
-                    
                 }
-                
-
             }
-            
         } else { // Points are already moving.
-            
             this.sendMessage("Cannot process last request to move the points...");
-            
         }
     }
     
@@ -223,9 +182,7 @@ public class Points {
      * @param message a <code>String</code> that is printed out to the console.
     */
     protected void sendMessage(String message) {
-
         System.out.println(message);
-        
     }
     
     /**
@@ -238,9 +195,7 @@ public class Points {
      * @return <code>integer</code> representing the array index of the Points object within the array.
      */
     public static int returnPointIndex(String identity) {
-        
         return Points.POINTS_HM.get(identity);
-            
     }
 
     /**
@@ -251,9 +206,7 @@ public class Points {
      * 
      */
     public String getIdentity() {
-
         return this.identity;
-        
     }
     
     /**
@@ -266,9 +219,7 @@ public class Points {
      * @see getPointsPower
      */
     protected void setPointsPower(PointsPower pointsPower) {
-        
         this.pointsPower = pointsPower;
-        
     }
     
     /**
@@ -281,7 +232,6 @@ public class Points {
      * @see setPointsPower
      */
     public PointsPower getPointsPower() {
-        
         return this.pointsPower;
     }
     
@@ -297,9 +247,7 @@ public class Points {
      * @see getPointsSecured
      */
     protected void setPointsSecured (Boolean arePointsSecured) {
-        
         this.arePointsSecured = arePointsSecured;
-        
     }
     
     /**
@@ -311,9 +259,7 @@ public class Points {
      * @see setPointsSecured
      */
     public Boolean getPointsSecured () {
-        
         return this.arePointsSecured;
-        
     }
     
     /**
@@ -325,9 +271,7 @@ public class Points {
      * @see setPointsPosition
      */
     public PointsPosition getPointsPosition() {
-        
         return this.positionOfPoints;
-        
     }
     
      /**
@@ -339,9 +283,7 @@ public class Points {
      * @see getPointsPosition
      */
     protected void setPointsPosition(PointsPosition toPosition) {
-        
         this.positionOfPoints = toPosition;
-        
     }
     
     /**
@@ -353,9 +295,7 @@ public class Points {
      * @see setDetectionStatus
      */
     public Boolean getDetectionStatus() {
-        
         return this.pointDetection;
-        
     }
     
     /**
@@ -368,18 +308,14 @@ public class Points {
      * @see getDetectionStatus
      */
     private void setDetectionStatus(Boolean detectionStatus) {
-        
         this.pointDetection = detectionStatus;
-        
     }
     
     /**
      * This is a PUBLIC method, to be used to remove detection. Detection is reinstated by calling attemptDetection();
      */
     public void dropDetection () {
-        
         this.setDetectionStatus(false);
-        
     }
 }
 

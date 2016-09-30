@@ -1,7 +1,6 @@
 package com.jgm.lineside.points;
 
 import com.jgm.lineside.LineSideModule;
-
 import java.io.IOException;
 
 /**

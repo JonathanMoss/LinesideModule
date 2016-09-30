@@ -5,6 +5,7 @@ import com.jgm.lineside.traindetection.TrainDetection;
 import com.jgm.lineside.traindetection.TD_Type;
 import com.jgm.lineside.datalogger.Colour;
 import com.jgm.lineside.datalogger.DataLoggerClient;
+import com.jgm.lineside.interlocking.RemoteInterlockingClient;
 import com.jgm.lineside.points.Points;
 import com.jgm.lineside.signals.Automatic_Signal_Type;
 import com.jgm.lineside.signals.Automatic_Signal;
@@ -55,6 +56,7 @@ public class LineSideModule {
     
     // Some general declarations.
     public static DataLoggerClient dataLogger;
+    public static RemoteInterlockingClient remoteInterlocking;
     public static final String NEW_LINE = System.lineSeparator();
     private static String OperatingSystem = System.getProperty("os.name");
  
@@ -181,7 +183,7 @@ public class LineSideModule {
                         true, true);
                     for (int i = 0; i < POINTS_ARRAY.size(); i++) {
                         LineSideModule.dataLogger.sendToDataLogger(String.format("%s%-8s%-10s%-8s%s", 
-                            Colour.BLUE.getColour(), POINTS_ARRAY.get(i).getIdentity(), POINTS_ARRAY.get(i).getPointsPosition(), 
+                            Colour.BLUE.getColour(), POINTS_ARRAY.get(i).getIdentity(), POINTS_ARRAY.get(i).getPointsPosition().toString(), 
                             (POINTS_ARRAY.get(i).getDetectionStatus()) ? Colour.GREEN.getColour() + LineSideModule.getOK() + Colour.RESET.getColour() : LineSideModule.getFailed(), Colour.RESET.getColour()),
                             true, true);
                     }
@@ -356,12 +358,15 @@ public class LineSideModule {
         
         // 10) Open a connection to the Remote Interlocking.
             LineSideModule.dataLogger.sendToDataLogger("Attempt a connection with the Remote Interlocking...", true, false);
-            LineSideModule.dataLogger.sendToDataLogger(String.format ("%s%s%s",
-                Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour()), 
-                true, true);
-            LineSideModule.ExitCommandLine(String.format ("%sERROR: Cannot connect to the remote interlocking.%s",
-                Colour.RED.getColour(), Colour.RESET.getColour()));
-            System.out.println();
+            //LineSideModule.dataLogger.sendToDataLogger(String.format ("%s%s%s",
+                //Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour()), 
+                //true, true);
+            LineSideModule.remoteInterlocking = new RemoteInterlockingClient(LineSideModule.riHost, Integer.parseInt(LineSideModule.riPort), LineSideModule.riIdentity);
+            LineSideModule.remoteInterlocking.setName("RemoteInterlockingClient");
+            LineSideModule.remoteInterlocking.start();
+            
+            
+            //System.out.println();
             
         // 11) Wait for State Changes or Messages From the Remote Intelocking.
         //TODO
@@ -392,7 +397,7 @@ public class LineSideModule {
      * It displays a message, and exits the program.
      * @param message A <code>String</code> detailing why there is an issue.
      */
-    private static void ExitCommandLine(String message) {
+    public static void ExitCommandLine(String message) {
         
         String msg;
         msg = String.format("Line Side Module cannot continue [%s]", message);
@@ -402,8 +407,6 @@ public class LineSideModule {
             } catch (IOException ex) {}
         }
         System.out.println(msg);
-        
         System.exit(0);
-        
     }
 }

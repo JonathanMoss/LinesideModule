@@ -8,7 +8,5 @@ package com.jgm.lineside.points;
  * NONE - Detection is not available in any orientation.
  */
 public enum DetectionAvailable {
-    
     NORMAL_ONLY, REVERSE_ONLY, BOTH, NONE;
-    
 }
