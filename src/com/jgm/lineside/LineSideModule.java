@@ -41,11 +41,17 @@ public class LineSideModule {
     // Define arrays to receive and create the Train Detection objects.
     private static final ArrayList <TrainDetection> TRAIN_DETECTION_ARRAY = new ArrayList<>();
     
+    // Some general declarations.
     protected static DataLoggerClient dataLogger;
     protected static final String NEW_LINE = System.lineSeparator();
-    
     private static String OperatingSystem = System.getProperty("os.name");
  
+    /**
+     * This method returns a string representing 'OK' for display on the command line.
+     * This method determines an appropriate indication based on the capabilities of the console.
+     * 
+     * @return A <code>String</code> representing 'OK' or a check mark.
+     */
     public static String getOK() {
         if (OperatingSystem.contains("Windows")) {
             return "OK";
@@ -54,6 +60,12 @@ public class LineSideModule {
         }
     }
     
+     /**
+     * This method returns a string representing 'FAILED' for display on the command line.
+     * This method determines an appropriate indication based on the capabilities of the console.
+     * 
+     * @return A <code>String</code> representing 'FAILED' or a Cross.
+     */
     public static String getFailed() {
         if (OperatingSystem.contains("Windows")) {
             return "FAILED";
@@ -72,7 +84,7 @@ public class LineSideModule {
             if (args[0].length() == 5) { // We are expecting a String of 5 characters only.
                 lsmIdentity = args[0]; // Set this Lineside Module Identity.
             } else { // Invalid Lineside Module Identity.
-                LineSideModule.ExitCommandLine(String.format("%sERR: Argument [1] expects a String object representing the LineSide Module Identity.%s",Colour.RED.getColour(), Colour.RED.getColour()));
+                LineSideModule.ExitCommandLine(String.format("%sERROR: Argument [1] expects a String object representing the LineSide Module Identity.%s",Colour.RED.getColour(), Colour.RED.getColour()));
             }
             
         // 2) Connect to the Database and obtain a few details about the LinesideModule based on the argument passed in 1.
@@ -86,7 +98,7 @@ public class LineSideModule {
             } catch (SQLException ex) {
                 System.out.println(String.format ("Connecting to remote DB - looking for Line Side Module details...%s%s%s",
                     Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour()));
-                LineSideModule.ExitCommandLine(String.format ("%sERR: Cannot obtain LineSide Module details from the database.%s",
+                LineSideModule.ExitCommandLine(String.format ("%sERROR: Cannot obtain LineSide Module details from the database.%s",
                         Colour.RED.getColour(), Colour.RESET.getColour()));
             }
             
@@ -105,7 +117,7 @@ public class LineSideModule {
             } catch (SQLException ex) {
                 System.out.println(String.format ("%s%s%s",
                     Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour()));
-                LineSideModule.ExitCommandLine( String.format ("%sERR: Cannot obtain Remote Interlocking details from the database.%s",
+                LineSideModule.ExitCommandLine( String.format ("%sERROR: Cannot obtain Remote Interlocking details from the database.%s",
                         Colour.RED.getColour(), Colour.RESET.getColour()));
             }
             
@@ -123,10 +135,10 @@ public class LineSideModule {
             } catch (SQLException ex) {
                 System.out.println(String.format ("%s%s%s",
                     Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour()));
-                LineSideModule.ExitCommandLine(String.format ("%sERR: Cannot obtain Data Logger details from the database.%s",
+                LineSideModule.ExitCommandLine(String.format ("%sERROR: Cannot obtain Data Logger details from the database.%s",
                         Colour.RED.getColour(), Colour.RESET.getColour()));
             }
-            DataLogger:
+
         // 5) Open a connection to the Data Logger.
             try {
                 LineSideModule.dataLogger = new DataLoggerClient(LineSideModule.dlHost, Integer.parseInt(LineSideModule.dlPort), LineSideModule.lsmIdentity);
@@ -135,7 +147,6 @@ public class LineSideModule {
                 Thread.sleep(2000);
             } catch (IOException | InterruptedException ex) {}
 
-        
         // 6) Build the Points.
             LineSideModule.dataLogger.sendToDataLogger("Connected to remote DB - looking for Points assigned to this Line Side Module...",true,false);
             try {
@@ -167,14 +178,14 @@ public class LineSideModule {
                     LineSideModule.dataLogger.sendToDataLogger(String.format ("%s%s%s",
                         Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour()), 
                         true, true);
-                    LineSideModule.ExitCommandLine(String.format ("%sERR: Cannot obtain Points details from the database.%s",
+                    LineSideModule.ExitCommandLine(String.format ("%sERROR: Cannot obtain Points details from the database.%s",
                         Colour.RED.getColour(), Colour.RESET.getColour()));
                 }
             } catch (SQLException ex) {
                 LineSideModule.dataLogger.sendToDataLogger(String.format ("%s%s%s",
                     Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour()), 
                     true, true);
-                LineSideModule.ExitCommandLine(String.format ("%sERR: Cannot obtain Points details from the database.%s",
+                LineSideModule.ExitCommandLine(String.format ("%sERROR: Cannot obtain Points details from the database.%s",
                     Colour.RED.getColour(), Colour.RESET.getColour()));
             }
             
@@ -191,7 +202,7 @@ public class LineSideModule {
                     LineSideModule.dataLogger.sendToDataLogger(String.format ("%s%s%s",
                         Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour()), 
                         true, true);
-                    LineSideModule.ExitCommandLine(String.format ("%sERR: Cannot obtain Controlled Signal details from the database.%s",
+                    LineSideModule.ExitCommandLine(String.format ("%sERROR: Cannot obtain Controlled Signal details from the database.%s",
                         Colour.RED.getColour(), Colour.RESET.getColour()));
                     }
                 }
@@ -199,7 +210,7 @@ public class LineSideModule {
                     LineSideModule.dataLogger.sendToDataLogger(String.format ("%s%s%s",
                         Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour()), 
                         true, true);
-                    LineSideModule.ExitCommandLine(String.format ("%sERR: Cannot obtain Controlled Signal details from the database.%s",
+                    LineSideModule.ExitCommandLine(String.format ("%sERROR: Cannot obtain Controlled Signal details from the database.%s",
                         Colour.RED.getColour(), Colour.RESET.getColour()));
                 }
                 LineSideModule.dataLogger.sendToDataLogger(String.format ("%s%s%s",
@@ -224,11 +235,10 @@ public class LineSideModule {
                 LineSideModule.dataLogger.sendToDataLogger(String.format ("%s%s%s",
                     Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour()), 
                     true, true);
-                LineSideModule.ExitCommandLine(String.format ("%sERR: Cannot obtain Controlled Signal details from the database.%s",
+                LineSideModule.ExitCommandLine(String.format ("%sERROR: Cannot obtain Controlled Signal details from the database.%s",
                     Colour.RED.getColour(), Colour.RESET.getColour()));
             }
             
-
         // 8) Build the non-controlled signals.
             LineSideModule.dataLogger.sendToDataLogger("Connected to remote DB - looking for non-controlled Signals assigned to this Line Side Module...", true, false);
             try {
@@ -244,7 +254,7 @@ public class LineSideModule {
                         LineSideModule.dataLogger.sendToDataLogger(String.format ("%s%s%s",
                             Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour()), 
                             true, true);
-                        LineSideModule.ExitCommandLine(String.format ("%sERR: Cannot obtain Non-Controlled Signal details from the database.%s",
+                        LineSideModule.ExitCommandLine(String.format ("%sERROR: Cannot obtain Non-Controlled Signal details from the database.%s",
                             Colour.RED.getColour(), Colour.RESET.getColour()));
                     }
                 }
@@ -252,7 +262,7 @@ public class LineSideModule {
                     LineSideModule.dataLogger.sendToDataLogger(String.format ("%s%s%s",
                         Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour()), 
                         true, true);
-                    LineSideModule.ExitCommandLine(String.format ("%sERR: Cannot obtain Non-Controlled Signal details from the database.%s",
+                    LineSideModule.ExitCommandLine(String.format ("%sERROR: Cannot obtain Non-Controlled Signal details from the database.%s",
                         Colour.RED.getColour(), Colour.RESET.getColour()));
                 }
                 LineSideModule.dataLogger.sendToDataLogger(String.format ("%s%s%s",
@@ -263,7 +273,7 @@ public class LineSideModule {
                 LineSideModule.dataLogger.sendToDataLogger(String.format ("%s%-22s%-18s%-16s%s%s",
                     Colour.BLUE.getColour(), "Non-Controlled Signal", "Type", "Current Aspect", "Function", Colour.RESET.getColour()), 
                     true, true);
-                LineSideModule.dataLogger.sendToDataLogger(String.format ("%s-----------------------------------------------------------------------%s",
+                LineSideModule.dataLogger.sendToDataLogger(String.format ("%s------------------------------------------------------------------------%s",
                     Colour.BLUE.getColour(), Colour.RESET.getColour()),
                     true, true);
                 for (int i = 0; i < NON_CONTROLLED_SIGNAL_ARRAY.size(); i++) {
@@ -278,9 +288,10 @@ public class LineSideModule {
                 LineSideModule.dataLogger.sendToDataLogger(String.format ("%s%s%s",
                     Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour()), 
                     true, true);
-                LineSideModule.ExitCommandLine(String.format ("%sERR: Cannot obtain Non-Controlled Signal details from the database.%s",
+                LineSideModule.ExitCommandLine(String.format ("%sERROR: Cannot obtain Non-Controlled Signal details from the database.%s",
                     Colour.RED.getColour(), Colour.RESET.getColour()));
             }
+            
         // 9) Build the Train Detection Sections.
             LineSideModule.dataLogger.sendToDataLogger("Connected to remote DB - looking for Train Detection Sections assigned to this Line Side Module...", true, false);
             try {
@@ -294,7 +305,7 @@ public class LineSideModule {
                         LineSideModule.dataLogger.sendToDataLogger(String.format ("%s%s%s",
                             Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour()), 
                             true, true);
-                        LineSideModule.ExitCommandLine(String.format ("%sERR: Cannot obtain Train Detection details from the database.%s",
+                        LineSideModule.ExitCommandLine(String.format ("%sERROR: Cannot obtain Train Detection details from the database.%s",
                             Colour.RED.getColour(), Colour.RESET.getColour()));
                     }
                 }
@@ -302,7 +313,7 @@ public class LineSideModule {
                     LineSideModule.dataLogger.sendToDataLogger(String.format ("%s%s%s",
                         Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour()), 
                         true, true);
-                     LineSideModule.ExitCommandLine(String.format ("%sERR: Cannot obtain Train Detection details from the database.%s",
+                     LineSideModule.ExitCommandLine(String.format ("%sERROR: Cannot obtain Train Detection details from the database.%s",
                         Colour.RED.getColour(), Colour.RESET.getColour()));
                 }
                 LineSideModule.dataLogger.sendToDataLogger(String.format ("%s%s%s",
@@ -327,7 +338,7 @@ public class LineSideModule {
                 LineSideModule.dataLogger.sendToDataLogger(String.format ("%s%s%s",
                     Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour()), 
                     true, true);
-                 LineSideModule.ExitCommandLine(String.format ("%sERR: Cannot obtain Train Detection details from the database.%s",
+                 LineSideModule.ExitCommandLine(String.format ("%sERROR: Cannot obtain Train Detection details from the database.%s",
                     Colour.RED.getColour(), Colour.RESET.getColour()));
             }
         
@@ -336,6 +347,8 @@ public class LineSideModule {
             LineSideModule.dataLogger.sendToDataLogger(String.format ("%s%s%s",
                 Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour()), 
                 true, true);
+            LineSideModule.ExitCommandLine(String.format ("%sERROR: Cannot connect to the remote interlocking.%s",
+                Colour.RED.getColour(), Colour.RESET.getColour()));
             System.out.println();
             
         // 11) Wait for State Changes or Messages From the Remote Intelocking.
@@ -343,7 +356,7 @@ public class LineSideModule {
 
        } else {
            
-           LineSideModule.ExitCommandLine("ERR: Incorrect number of command line arguments.");
+           LineSideModule.ExitCommandLine("ERROR: Incorrect number of command line arguments.");
            
        }
        
@@ -370,18 +383,12 @@ public class LineSideModule {
     private static void ExitCommandLine(String message) {
         
         String msg;
-        msg = String.format("Line Side Module is exiting :: '%s'", message);
+        msg = String.format("Line Side Module cannot continue [%s]", message);
+        try {
+            LineSideModule.dataLogger.sendToDataLogger(msg, false, true);
+        } catch (IOException e) {}
         System.out.println(msg);
         System.exit(0);
         
     }
-    
-    private static void testMessage(Points obj) {
-        
-        String msg;
-        msg = String.format("%s\t%s\t%s", obj.getIdentity(), obj.getPointsPosition().toString(), obj.getDetectionStatus().toString().toUpperCase());
-        System.out.println(msg);
-        
-    }
-    
 }

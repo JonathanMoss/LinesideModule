@@ -8,6 +8,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import java.util.Arrays;
 
 /**
  * This class provides the functionality to connect to the Data Logger
@@ -104,12 +105,6 @@ public class DataLoggerClient extends Thread {
         if (console) { // If console is set to true, display message on the console.
             System.out.print(String.format("%s%s", message, (carriageReturn) ? LineSideModule.NEW_LINE : ""));
         }
-        for (int i=0; i < Colour.values().length; i++) {
-            if (message.contains(Colour.values()[i].getColour())) {
-                //message = message.replace(Colour.values()[i].getColour(), "");
-            }
-        }
-        
         if (this.connected && this.output != null) { // Check connected, if so - send message to the DataLogger.
             this.output.writeUTF(String.format("LSM|%s|%s", this.lsmIdentity, message));
             this.output.flush(); 
@@ -144,12 +139,18 @@ public class DataLoggerClient extends Thread {
                     this.sendToDataLogger(String.format ("%sWARNING: The DataLogger Server has severed the connection%s",
                         Colour.RED.getColour(), Colour.RESET.getColour())
                         , true, true);
-                } catch (IOException | NullPointerException ex) {}
+                } catch (IOException | NullPointerException e) {
+                    System.out.println(String.format ("%s%s%s",
+                        Colour.RED.getColour(), Arrays.toString(e.getStackTrace()), Colour.RESET.getColour())); 
+                }
                     try {
                         this.closeConnection();
-                    } catch (NullPointerException ex) {}
-                        this.run();
-            } catch (IOException io) {
+                    } catch (NullPointerException e) {
+                        System.out.println(String.format ("%s%s%s",
+                            Colour.RED.getColour(), Arrays.toString(e.getStackTrace()), Colour.RESET.getColour()));
+                    }
+                    this.run();
+            } catch (IOException e) {
                 try {
                     this.sendToDataLogger(String.format("%s%s%sWARNING: Cannot connect to the Data Logger (Connection Refused) [%s:%s]%s",
                         Colour.RED.getColour(), LineSideModule.getFailed(), LineSideModule.NEW_LINE, this.dataLoggerIP, this.dataLoggerPort, Colour.RESET.getColour())
@@ -157,9 +158,18 @@ public class DataLoggerClient extends Thread {
                     this.closeConnection();
                     try {
                         Thread.sleep(3000);
-                    } catch (InterruptedException ex) {}
-                    } catch (IOException | NullPointerException ex) {}
-            } catch (NullPointerException np) {}
+                    } catch (InterruptedException ex) {
+                        System.out.println(String.format ("%s%s%s",
+                            Colour.RED.getColour(), Arrays.toString(ex.getStackTrace()), Colour.RESET.getColour()));
+                    }
+                    } catch (IOException | NullPointerException npe) {
+                        System.out.println(String.format ("%s%s%s",
+                            Colour.RED.getColour(), Arrays.toString(npe.getStackTrace()), Colour.RESET.getColour()));
+                    }
+            } catch (NullPointerException e) {
+                System.out.println(String.format ("%s%s%s",
+                    Colour.RED.getColour(), Arrays.toString(e.getStackTrace()), Colour.RESET.getColour()));
+            }
         } while (this.connected | this.establishingConnection);
     }
 }
