@@ -3,7 +3,6 @@ package com.jgm.lineside.interlocking;
 
 import com.jgm.lineside.LineSideModule;
 import com.jgm.lineside.datalogger.Colour;
-import com.jgm.lineside.datalogger.DataLoggerClient;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -37,8 +36,8 @@ public class RemoteInterlockingClient extends Thread {
             this.sockAddress = new InetSocketAddress(InetAddress.getByName(RemoteInterlockingClient.remoteInterlockingIP), RemoteInterlockingClient.remoteInterlockingPort);
         } catch (UnknownHostException ex) {
             try {
-                LineSideModule.dataLogger.sendToDataLogger (String.format ("%sFAILED: Invalid IP Address.%s",
-                    Colour.RED.getColour(), Colour.RESET.getColour()),
+                LineSideModule.dataLogger.sendToDataLogger (String.format ("%s%s: Invalid IP Address.%s",
+                    Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour()),
                     true, true);
                 LineSideModule.ExitCommandLine(String.format ("%sERROR: Cannot connect to the remote interlocking.%s",
                     Colour.RED.getColour(), Colour.RESET.getColour()));
@@ -52,16 +51,16 @@ public class RemoteInterlockingClient extends Thread {
             this.conn.connect(sockAddress, 10000);   
         } catch (IllegalArgumentException iae) {
             try {
-                LineSideModule.dataLogger.sendToDataLogger (String.format ("%sFAILED: Invalid IP Address.%s",
-                    Colour.RED.getColour(), Colour.RESET.getColour()),
+                LineSideModule.dataLogger.sendToDataLogger (String.format ("%s%s: Invalid IP Address.%s",
+                    Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour()),
                     true, true);
                 LineSideModule.ExitCommandLine(String.format ("%sERROR: Cannot connect to the remote interlocking.%s",
                     Colour.RED.getColour(), Colour.RESET.getColour()));
             } catch (IOException ex) {}    
         } catch (IOException e) {
             try {
-                LineSideModule.dataLogger.sendToDataLogger (String.format ("%sFAILED: Cannot find the Remote Interlocking Server.%s",
-                    Colour.RED.getColour(), Colour.RESET.getColour()),
+                LineSideModule.dataLogger.sendToDataLogger (String.format ("%s%s: Cannot find the Remote Interlocking Server.%s",
+                    Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour()),
                     true, true);
                 LineSideModule.ExitCommandLine(String.format ("%sERROR: Cannot connect to the remote interlocking.%s",
                     Colour.RED.getColour(), Colour.RESET.getColour()));
