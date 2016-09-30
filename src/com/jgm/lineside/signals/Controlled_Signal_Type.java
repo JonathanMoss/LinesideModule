@@ -1,4 +1,6 @@
-package com.jgm.lineside;
+package com.jgm.lineside.signals;
+
+import com.jgm.lineside.signals.Aspects;
 
 /**
  *

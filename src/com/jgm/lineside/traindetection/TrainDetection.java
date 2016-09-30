@@ -1,4 +1,4 @@
-package com.jgm.lineside;
+package com.jgm.lineside.traindetection;
 
 import java.util.HashMap;
 import java.util.Random;
@@ -235,14 +235,5 @@ public class TrainDetection {
 }
 
 
-enum DetectionStatus {
-    CLEAR, OCCUPIED;
-}
 
-enum FailureStatus {
-    FAILED_CLEAR_WHEN_OCCUPIED, FAILED_OCCUPIED_WHEN_CLEAR, NORMAL, MIS_COUNT;
-}
 
-enum TD_Type {
-    AXLE_COUNTER, TRACK_CIRCUIT;
-}

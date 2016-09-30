@@ -1,4 +1,4 @@
-package com.jgm.lineside;
+package com.jgm.lineside.points;
 import java.util.*;
 
 /**
@@ -177,7 +177,7 @@ public class Points {
 
                             if (this.threadObject == null || this.threadObject.getState() == Thread.State.TERMINATED) {
                                 this.setPointsAreMoving(true);
-                                this.threadObject = new pointsMovingPower(this, toPosition, this.powerOperationSeconds);
+                                this.threadObject = new PointsMovingPower(this, toPosition, this.powerOperationSeconds);
                                 this.threadObject.start();
                             } else {
                                 this.sendMessage("Cannot process last request to move the points...");
@@ -331,7 +331,7 @@ public class Points {
     }
     
      /**
-     * This method changes the value of PositionOfPoints property; it should only be called by a <code>pointsMovingPower</code> object.
+     * This method changes the value of PositionOfPoints property; it should only be called by a <code>PointsMovingPower</code> object.
      * @param toPosition A <code>PointsPosition</code> value as either <i>NORMAL, REVERSE, </i>or <i>UNKNOWN</i>
      * 
      * This method is required by this package only.
@@ -383,40 +383,11 @@ public class Points {
     }
 }
 
-/**
- * This enumeration specifies the 3 valid values concerning the position of the points.
- * NORMAL, REVERSE - Standard terminology for the position (orientation) of the points - required by signalling control tables.
- * UNKNOWN - This position indicates that the points are neither Normal nor Reverse.
- */
-enum PointsPosition {
-    
-    NORMAL, REVERSE, UNKNOWN;
-     
-}
 
-/**
- * This enumeration specifies the 4 valid values concerning what detection is available on a particular set of points.
- * NORMAL_ONLY - Only when the points are sitting in the normal position is detection available;
- * REVERSE_ONLY - Only when the points are sitting in the reverse position is detection available.
- * BOTH - Detection is available in both normal and reverse.
- * NONE - Detection is not available in any orientation.
- */
-enum DetectionAvailable {
-    
-    NORMAL_ONLY, REVERSE_ONLY, BOTH, NONE;
-    
-}
 
-/**
- * This enumeration specifies the 2 valid values concerning points power.
- * POWER - points are operating under power operation (able to move under power of the motor);
- * OFF_POWER - points are not able to move under power operation and will require manual operation. 
- */
-enum PointsPower {
-    
-    POWER, OFF_POWER;
-    
-}
+
+
+
 
 
 

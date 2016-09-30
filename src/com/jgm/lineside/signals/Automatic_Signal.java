@@ -1,5 +1,6 @@
-package com.jgm.lineside;
+package com.jgm.lineside.signals;
 
+import com.jgm.lineside.signals.Aspects;
 import java.util.HashMap;
 
 /**
@@ -75,10 +76,6 @@ public class Automatic_Signal {
     
 }
 
-enum Function {
-    
-    AUTOMATIC, CO_ACTING, REPEATER, BANNER, FIXED, ADJACENT_CONTROL;
-    
-}
+
 
 

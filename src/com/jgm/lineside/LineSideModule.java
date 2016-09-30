@@ -1,5 +1,17 @@
 package com.jgm.lineside;
 
+import com.jgm.lineside.database.MySqlConnect;
+import com.jgm.lineside.traindetection.TrainDetection;
+import com.jgm.lineside.traindetection.TD_Type;
+import com.jgm.lineside.datalogger.Colour;
+import com.jgm.lineside.datalogger.DataLoggerClient;
+import com.jgm.lineside.points.Points;
+import com.jgm.lineside.signals.Automatic_Signal_Type;
+import com.jgm.lineside.signals.Automatic_Signal;
+import com.jgm.lineside.signals.Function;
+import com.jgm.lineside.signals.Controlled_Signal;
+import com.jgm.lineside.signals.Controlled_Signal_Type;
+import com.jgm.lineside.signals.Aspects;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -42,8 +54,8 @@ public class LineSideModule {
     private static final ArrayList <TrainDetection> TRAIN_DETECTION_ARRAY = new ArrayList<>();
     
     // Some general declarations.
-    protected static DataLoggerClient dataLogger;
-    protected static final String NEW_LINE = System.lineSeparator();
+    public static DataLoggerClient dataLogger;
+    public static final String NEW_LINE = System.lineSeparator();
     private static String OperatingSystem = System.getProperty("os.name");
  
     /**
@@ -169,7 +181,7 @@ public class LineSideModule {
                         true, true);
                     for (int i = 0; i < POINTS_ARRAY.size(); i++) {
                         LineSideModule.dataLogger.sendToDataLogger(String.format("%s%-8s%-10s%-8s%s", 
-                            Colour.BLUE.getColour(), POINTS_ARRAY.get(i).getIdentity(), POINTS_ARRAY.get(i).getPointsPosition().toString(), 
+                            Colour.BLUE.getColour(), POINTS_ARRAY.get(i).getIdentity(), POINTS_ARRAY.get(i).getPointsPosition(), 
                             (POINTS_ARRAY.get(i).getDetectionStatus()) ? Colour.GREEN.getColour() + LineSideModule.getOK() + Colour.RESET.getColour() : LineSideModule.getFailed(), Colour.RESET.getColour()),
                             true, true);
                     }
@@ -377,17 +389,20 @@ public class LineSideModule {
     
     /**
      * This method is called when there is a problem with the command line arguments passed.
-     * It displays a message, and exits the programme.
+     * It displays a message, and exits the program.
      * @param message A <code>String</code> detailing why there is an issue.
      */
     private static void ExitCommandLine(String message) {
         
         String msg;
         msg = String.format("Line Side Module cannot continue [%s]", message);
-        try {
-            LineSideModule.dataLogger.sendToDataLogger(msg, false, true);
-        } catch (IOException e) {}
+        if (LineSideModule.dataLogger != null) {
+            try {
+                LineSideModule.dataLogger.sendToDataLogger(message, Boolean.FALSE, Boolean.TRUE);
+            } catch (IOException ex) {}
+        }
         System.out.println(msg);
+        
         System.exit(0);
         
     }

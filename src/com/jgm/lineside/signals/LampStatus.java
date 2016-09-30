@@ -1,4 +1,4 @@
-package com.jgm.lineside;
+package com.jgm.lineside.signals;
 
 /**
  *

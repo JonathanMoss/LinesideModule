@@ -1,5 +1,7 @@
-package com.jgm.lineside;
+package com.jgm.lineside.database;
 
+import com.jgm.lineside.LineSideModule;
+import com.jgm.lineside.datalogger.Colour;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;

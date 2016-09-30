@@ -1,5 +1,6 @@
-package com.jgm.lineside;
+package com.jgm.lineside.signals;
 
+import com.jgm.lineside.signals.Aspects;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -28,7 +29,7 @@ public class Controlled_Signal {
      * 
      * @throws Exception
      */
-    protected Controlled_Signal (String prefix, String id, Controlled_Signal_Type signalType) throws Exception{
+    public Controlled_Signal (String prefix, String id, Controlled_Signal_Type signalType) throws Exception{
         
         // Parameter Validation.   
         if (!prefix.toUpperCase().matches("^[A-Z]{2,3}[A-Za-z0-9]{0,1}$")) {
@@ -119,7 +120,7 @@ public class Controlled_Signal {
      * 
      * @return An <code>Aspects</code> object representing the current signal aspect.
      */
-    protected Aspects getCurrentAspect() {
+    public Aspects getCurrentAspect() {
         return this.currentAspect;
     }
     
@@ -174,7 +175,7 @@ public class Controlled_Signal {
      * 
      * @return A <code>Controlled_Signal_Type</code> object that represents the type of signal.
      */
-    protected Controlled_Signal_Type getSignalType() {
+    public Controlled_Signal_Type getSignalType() {
         return this.signalType;
     }
     
@@ -183,7 +184,7 @@ public class Controlled_Signal {
      * 
      * @return A <code>String</code> containing the signal prefix and signal identity.
      */
-    protected String getFullSignalIdentity() {
+    public String getFullSignalIdentity() {
         return (this.prefix + this.id);
     }
     

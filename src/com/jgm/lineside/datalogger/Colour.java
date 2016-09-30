@@ -1,4 +1,4 @@
-package com.jgm.lineside;
+package com.jgm.lineside.datalogger;
 
 /**
  *
@@ -21,7 +21,7 @@ public enum Colour {
         this.uniCode = uniCode;
     }
     
-    String getColour () {
+    public String getColour () {
         return uniCode;
     }
     

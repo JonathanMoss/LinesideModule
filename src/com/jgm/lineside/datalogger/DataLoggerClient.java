@@ -1,5 +1,6 @@
-package com.jgm.lineside;
+package com.jgm.lineside.datalogger;
 
+import com.jgm.lineside.LineSideModule;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.EOFException;
@@ -35,7 +36,7 @@ public class DataLoggerClient extends Thread {
      * @param lsmIdentity A <code>String</code> that details the Lineside Module identity.
      * @throws IOException 
      */
-    protected DataLoggerClient(String dataLoggerIP, int dataLoggerPort, String lsmIdentity) throws IOException {
+    public DataLoggerClient(String dataLoggerIP, int dataLoggerPort, String lsmIdentity) throws IOException {
         this.dataLoggerIP = dataLoggerIP;
         this.dataLoggerPort = dataLoggerPort;
         this.lsmIdentity = lsmIdentity;
@@ -101,7 +102,7 @@ public class DataLoggerClient extends Thread {
      * @param carriageReturn A <code>Boolean</code> value, <i>true</i> appends a carriage return to the end of the message, otherwise <i>false</i>.
      * @throws IOException 
      */
-    protected synchronized void sendToDataLogger (String message, Boolean console, Boolean carriageReturn) throws IOException {
+    public synchronized void sendToDataLogger (String message, Boolean console, Boolean carriageReturn) throws IOException {
         if (console) { // If console is set to true, display message on the console.
             System.out.print(String.format("%s%s", message, (carriageReturn) ? LineSideModule.NEW_LINE : ""));
         }

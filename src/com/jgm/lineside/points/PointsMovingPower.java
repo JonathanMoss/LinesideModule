@@ -1,4 +1,6 @@
-package com.jgm.lineside;
+package com.jgm.lineside.points;
+
+import com.jgm.lineside.LineSideModule;
 
 import java.io.IOException;
 
@@ -7,7 +9,7 @@ import java.io.IOException;
  * @author Jonathan Moss
  * @version 1.0 17/08/2016
  */
-public class pointsMovingPower extends Thread {
+public class PointsMovingPower extends Thread {
     
     // Declare fields.
     private final Points pointObject; // A reference to the instantiated point object.
@@ -22,7 +24,7 @@ public class pointsMovingPower extends Thread {
      * @param toPosition A <code>PointsPosition</code> value that determines the required position of the points.
      * @param secondsToMotor an <code>integer</code> specifying the time (in seconds) how long the points take to operate from A to B.
      */
-   protected pointsMovingPower (Points pointObject, PointsPosition toPosition, int secondsToMotor) {
+   protected PointsMovingPower (Points pointObject, PointsPosition toPosition, int secondsToMotor) {
         
         // Assign values to field variables.
         this.pointObject = pointObject;

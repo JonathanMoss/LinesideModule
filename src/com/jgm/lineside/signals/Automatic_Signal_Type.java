@@ -1,4 +1,6 @@
-package com.jgm.lineside;
+package com.jgm.lineside.signals;
+
+import com.jgm.lineside.signals.Aspects;
 
 /**
  *
@@ -18,7 +20,7 @@ public enum Automatic_Signal_Type {
         this.applicable_aspects = applicable_aspects;
     }
     
-    Aspects[] returnApplicableAspects() {
+    public Aspects[] returnApplicableAspects() {
         return this.applicable_aspects;
     }
     
