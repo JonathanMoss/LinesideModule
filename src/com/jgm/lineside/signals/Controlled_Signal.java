@@ -1,6 +1,5 @@
 package com.jgm.lineside.signals;
 
-import com.jgm.lineside.signals.Aspects;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -47,8 +46,11 @@ public class Controlled_Signal {
         this.signalType = signalType;
         
         // Setup the initial aspect.
-        this.currentAspect = this.signalType.returnApplicableAspects()[0];
-       
+        if (this.signalType.equals(Controlled_Signal_Type.COLOUR_LIGHT_3_CA) || this.signalType.equals(Controlled_Signal_Type.COLOUR_LIGHT_4_CA)) {
+            this.currentAspect = this.signalType.returnApplicableAspects()[1];
+        } else {
+            this.currentAspect = this.signalType.returnApplicableAspects()[0];
+        }
         
         // Setting up a signal lamp for each aspect, except the aspects that cannot be shown - such as black!.
         int x;

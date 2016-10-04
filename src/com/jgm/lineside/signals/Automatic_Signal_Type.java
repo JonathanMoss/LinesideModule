@@ -1,7 +1,5 @@
 package com.jgm.lineside.signals;
 
-import com.jgm.lineside.signals.Aspects;
-
 /**
  *
  * @author Jonathan Moss
