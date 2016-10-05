@@ -63,6 +63,14 @@ public class LineSideModule {
     public static final String NEW_LINE = System.lineSeparator();
     private static String OperatingSystem = System.getProperty("os.name");
  
+    public static ArrayList getPointsArray () {
+        return POINTS_ARRAY;
+    }
+    
+    public static String getLineSideModuleIdentity() {
+        return lsmIdentity;
+    }
+    
     /**
      * This method returns a string representing 'OK' for display on the command line.
      * This method determines an appropriate indication based on the capabilities of the console.
@@ -374,7 +382,7 @@ public class LineSideModule {
             }
             
             if (setup) {
-                remoteInterlocking.outgoing.sendMessageToRemoteInterlocking("SETUP|" + lsmIdentity);
+                remoteInterlocking.outgoing.sendMessageToRemoteInterlocking(lsmIdentity + "|SETUP");
             }
             
             while (setup) {

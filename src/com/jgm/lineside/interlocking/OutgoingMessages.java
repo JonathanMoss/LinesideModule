@@ -1,8 +1,13 @@
 package com.jgm.lineside.interlocking;
 
+import com.jgm.lineside.LineSideModule;
+import com.jgm.lineside.points.Points;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
@@ -30,6 +35,26 @@ public class OutgoingMessages extends DataOutputStream implements Runnable{
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+    }
+    
+    public synchronized void sendPointsArrayToRemoteInterlocking (ArrayList <Points> list) {
+        
+        int arrayLength = list.size();
+        try {
+            // The first Message should contain some additional details (always  fields)
+            this.writeUTF(String.format("%s|%s|%s",
+                    LineSideModule.getLineSideModuleIdentity(), "POINTS", arrayLength));
+        } catch (IOException ex) {}
+        
+        for (int i = 0; i < arrayLength; i++) {
+            try {
+                this.writeUTF(String.format ("%s|%s",
+                    LineSideModule.getLineSideModuleIdentity(), list.get(i).getIdentity()));
+            } catch (IOException ex) {
+                
+            }
+        }
+        
     }
 
 }
