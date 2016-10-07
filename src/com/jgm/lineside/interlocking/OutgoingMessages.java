@@ -6,9 +6,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 
 /**
  *
@@ -29,6 +26,8 @@ public class OutgoingMessages extends DataOutputStream implements Runnable{
     }
     
     public synchronized void sendMessageToRemoteInterlocking(String msg) {
+        System.out.println(msg);
+        
         try {
             this.writeUTF(msg);
             this.flush();

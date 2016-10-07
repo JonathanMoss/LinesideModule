@@ -382,7 +382,13 @@ public class LineSideModule {
             }
             
             if (setup) {
-                remoteInterlocking.outgoing.sendMessageToRemoteInterlocking(lsmIdentity + "|SETUP");
+                String msgBody = String.format ("%s|HAND_SHAKE|NULL", lsmIdentity);
+                String msgEnd = "|END_MESSAGE";
+                remoteInterlocking.outgoing.sendMessageToRemoteInterlocking(String.format ("%s|%s%s",
+                    msgBody, msgBody.hashCode(), msgEnd));
+                remoteInterlocking.outgoing.sendMessageToRemoteInterlocking(String.format ("%s|%s%s",
+                    msgBody, msgBody.hashCode(), msgEnd));
+                
             }
             
             while (setup) {
