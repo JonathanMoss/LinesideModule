@@ -386,8 +386,7 @@ public class LineSideModule {
                 String msgEnd = "|END_MESSAGE";
                 remoteInterlocking.outgoing.sendMessageToRemoteInterlocking(String.format ("%s|%s%s",
                     msgBody, msgBody.hashCode(), msgEnd));
-                remoteInterlocking.outgoing.sendMessageToRemoteInterlocking(String.format ("%s|%s%s",
-                    msgBody, msgBody.hashCode(), msgEnd));
+                
                 
             }
             
