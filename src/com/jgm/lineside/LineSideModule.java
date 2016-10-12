@@ -386,7 +386,15 @@ public class LineSideModule {
                 String msgEnd = "|END_MESSAGE";
                 remoteInterlocking.outgoing.sendMessageToRemoteInterlocking(String.format ("%s|%s%s",
                     msgBody, msgBody.hashCode(), msgEnd));
-                
+                try {
+                    Thread.sleep(10000);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(LineSideModule.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                msgBody = String.format ("%s|SETUP|POINTS.994.NORMAL.TRUE", lsmIdentity);
+                msgEnd = "|END_MESSAGE";
+                remoteInterlocking.outgoing.sendMessageToRemoteInterlocking(String.format ("%s|%s%s",
+                    msgBody, msgBody.hashCode(), msgEnd));
                 
             }
             
