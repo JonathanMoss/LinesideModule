@@ -36,6 +36,10 @@ public class LineSideModule {
     private static String riHost; // The IP address of the Remote Interlocking server.
     private static String riPort; // The port number of the Remote Interlocking Server.
     private static String riIdentity;
+
+    public static String getRiIdentity() {
+        return riIdentity;
+    }
     private static Boolean setup = true;
     
     // Define arrays to receive and create the points objects.
@@ -369,9 +373,6 @@ public class LineSideModule {
         
         // 10) Open a connection to the Remote Interlocking.
             dataLogger.sendToDataLogger("Attempt a connection with the Remote Interlocking...", true, false);
-            //dataLogger.sendToDataLogger(String.format ("%s%s%s",
-                //Colour.RED.getColour(), getFailed(), Colour.RESET.getColour()), 
-                //true, true);
             remoteInterlocking = new RemoteInterlockingClient(riHost, Integer.parseInt(riPort), riIdentity);
             remoteInterlocking.setName("RemoteInterlockingClient");
             remoteInterlocking.start();
