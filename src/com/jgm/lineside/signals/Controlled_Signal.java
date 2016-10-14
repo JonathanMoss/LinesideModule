@@ -14,6 +14,14 @@ public class Controlled_Signal {
     
     private final Controlled_Signal_Type signalType;
     private Aspects currentAspect;
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public String getId() {
+        return id;
+    }
     private final String prefix;
     private final String id;
     private final LampStatus[] signalLamp;

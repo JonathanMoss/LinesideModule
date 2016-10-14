@@ -10,6 +10,14 @@ public class Automatic_Signal {
     
     private static int automaticSignalTally = 0; // A static class variable to contain an integer regarding how many Automatic Signals have been created.
     private final static HashMap <String, Integer> AUTOMATIC_SIGNALS_HM = new HashMap <>(); // Map to store each Train Detection Index and Signal Identity.
+
+    public String getPrefix() {
+        return prefix;
+    }
+
+    public String getId() {
+        return identity;
+    }
     private final String prefix;
     private final String identity;
     private final Automatic_Signal_Type type;

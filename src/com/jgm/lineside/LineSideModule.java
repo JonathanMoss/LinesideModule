@@ -61,7 +61,7 @@ public class LineSideModule {
     public static DataLoggerClient dataLogger;
     public static RemoteInterlockingClient remoteInterlocking;
     public static final String NEW_LINE = System.lineSeparator();
-    private static String OperatingSystem = System.getProperty("os.name");
+    private static final String OPERATING_SYSTEM = System.getProperty("os.name");
  
     public static ArrayList getPointsArray () {
         return POINTS_ARRAY;
@@ -78,7 +78,7 @@ public class LineSideModule {
      * @return A <code>String</code> representing 'OK' or a check mark.
      */
     public static String getOK() {
-        if (OperatingSystem.contains("Windows")) {
+        if (OPERATING_SYSTEM.contains("Windows")) {
             return "OK";
         } else {
             return "[\u2713]";
@@ -92,7 +92,7 @@ public class LineSideModule {
      * @return A <code>String</code> representing 'FAILED' or a Cross.
      */
     public static String getFailed() {
-        if (OperatingSystem.contains("Windows")) {
+        if (OPERATING_SYSTEM.contains("Windows")) {
             return "FAILED";
         } else {
             return "[\u2717]";
@@ -391,10 +391,41 @@ public class LineSideModule {
                 } catch (InterruptedException ex) {
                     Logger.getLogger(LineSideModule.class.getName()).log(Level.SEVERE, null, ex);
                 }
-                msgBody = String.format ("%s|SETUP|POINTS.994.NORMAL.TRUE", lsmIdentity);
-                msgEnd = "|END_MESSAGE";
-                remoteInterlocking.outgoing.sendMessageToRemoteInterlocking(String.format ("%s|%s%s",
-                    msgBody, msgBody.hashCode(), msgEnd));
+//                msgBody = String.format ("%s|SETUP|POINTS.994.NORMAL.TRUE", lsmIdentity);
+//                remoteInterlocking.outgoing.sendMessageToRemoteInterlocking(String.format ("%s|%s%s",
+//                    msgBody, msgBody.hashCode(), msgEnd));
+                
+                // Points
+                for (int i = 0; i < POINTS_ARRAY.size(); i++) {
+                    msgBody = String.format ("%s|SETUP|POINTS.%s.%s.%s", 
+                        lsmIdentity, POINTS_ARRAY.get(i).getIdentity(),POINTS_ARRAY.get(i).getPointsPosition().toString(), POINTS_ARRAY.get(i).getDetectionStatus());
+                    remoteInterlocking.outgoing.sendMessageToRemoteInterlocking(String.format ("%s|%s%s",
+                        msgBody, msgBody.hashCode(), msgEnd));
+                }
+                
+                // Controlled Signals
+                for (int i = 0; i < CONTROLLED_SIGNAL_ARRAY.size(); i++) {
+                    msgBody = String.format ("%s|SETUP|CONTROLLED_SIGNAL.%s.%s.%s", 
+                        lsmIdentity, CONTROLLED_SIGNAL_ARRAY.get(i).getPrefix(), CONTROLLED_SIGNAL_ARRAY.get(i).getId(), CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString());
+                    remoteInterlocking.outgoing.sendMessageToRemoteInterlocking(String.format ("%s|%s%s",
+                        msgBody, msgBody.hashCode(), msgEnd));
+                }
+                
+                // Non-Controlled Signals
+                for (int i = 0; i < NON_CONTROLLED_SIGNAL_ARRAY.size(); i++) {
+                    msgBody = String.format ("%s|SETUP|AUTOMATIC_SIGNALS.%s.%s.%s", 
+                        lsmIdentity, NON_CONTROLLED_SIGNAL_ARRAY.get(i).getPrefix(), NON_CONTROLLED_SIGNAL_ARRAY.get(i).getId(), NON_CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString());
+                    remoteInterlocking.outgoing.sendMessageToRemoteInterlocking(String.format ("%s|%s%s",
+                        msgBody, msgBody.hashCode(), msgEnd));
+                }
+                
+                // Train Detection Sections
+                for (int i = 0; i < TRAIN_DETECTION_ARRAY.size(); i++) {
+                    msgBody = String.format ("%s|SETUP|TRAIN_DETECTION.%s.%s", 
+                        lsmIdentity, TRAIN_DETECTION_ARRAY.get(i).getIdentity(), TRAIN_DETECTION_ARRAY.get(i).getDetectionStatus().toString());
+                    remoteInterlocking.outgoing.sendMessageToRemoteInterlocking(String.format ("%s|%s%s",
+                        msgBody, msgBody.hashCode(), msgEnd));
+                }
                 
             }
             
