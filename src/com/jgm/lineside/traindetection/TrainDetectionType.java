@@ -1,6 +1,6 @@
 
 package com.jgm.lineside.traindetection;
 
-public enum TD_Type {
+public enum TrainDetectionType {
     AXLE_COUNTER, TRACK_CIRCUIT;
 }

@@ -14,7 +14,7 @@ public class TrainDetection {
     private final String identity; // The identity of the points (without the TC prefix.)
     private DetectionStatus detectionStatus; // The DetectionStatus (CLEAR or OCCUPIED).
     private FailureStatus failureStatus; // Member to hold the FailureStatus of the points.
-    private final TD_Type type; // The type of train detection section - TC or AC.
+    private final TrainDetectionType type; // The type of train detection section - TC or AC.
     private Boolean shuntedTrack = false; // A flag to indicate if the TD Section has been 'shunted'.
     private Boolean trainOccupyingSection = false; // A flag to indication if a train is physically occupying the TD Section.
     private Boolean intermittentTrackCircuitFailure = false; // A flag to indicate if an intermittent track circuit failure has been set.
@@ -24,9 +24,9 @@ public class TrainDetection {
     /**
      * This is the constructor method for a Train Detection Object.
      * @param identity A <code>String</code> representing the identity of the points.
-     * @param type A <code>TD_Type</code> object representing the type of Train Detection - Axle Counter or Track Circuit.
+     * @param type A <code>TrainDetectionType</code> object representing the type of Train Detection - Axle Counter or Track Circuit.
      */
-    public TrainDetection(String identity, TD_Type type) {
+    public TrainDetection(String identity, TrainDetectionType type) {
         // Fill member variables with parameters passed / defaults.
         this.identity = identity;
         this.type = type;
@@ -163,9 +163,9 @@ public class TrainDetection {
 
         switch (method) {
             case "setIntermittentTrackCircuitFailure":
-                if (this.type != TD_Type.AXLE_COUNTER && this.failureStatus == FailureStatus.NORMAL && this.shuntedTrack == false) { return true; } else { return false; }
+                if (this.type != TrainDetectionType.AXLE_COUNTER && this.failureStatus == FailureStatus.NORMAL && this.shuntedTrack == false) { return true; } else { return false; }
             case "restoreIntermittentTrackCircuitFailure":
-                if (this.type != TD_Type.AXLE_COUNTER && (this.failureStatus == FailureStatus.NORMAL || this.failureStatus == FailureStatus.FAILED_OCCUPIED_WHEN_CLEAR) && this.shuntedTrack == false) { return true; } else { return false; }
+                if (this.type != TrainDetectionType.AXLE_COUNTER && (this.failureStatus == FailureStatus.NORMAL || this.failureStatus == FailureStatus.FAILED_OCCUPIED_WHEN_CLEAR) && this.shuntedTrack == false) { return true; } else { return false; }
             case "tecShunt":
                 if (!this.intermittentTrackCircuitFailure && this.failureStatus == FailureStatus.NORMAL && !this.trainOccupyingSection) { return true; } else { return false; }
             case "TrainOccupiesSection":
@@ -190,12 +190,12 @@ public class TrainDetection {
     // **********************************************************************************************************
         switch(status) {
             case FAILED_CLEAR_WHEN_OCCUPIED:
-                if (this.type != TD_Type.AXLE_COUNTER) {
+                if (this.type != TrainDetectionType.AXLE_COUNTER) {
                     this.failureStatus = status;
                 } 
                 break;
             case MIS_COUNT:
-                if (this.type != TD_Type.TRACK_CIRCUIT) {
+                if (this.type != TrainDetectionType.TRACK_CIRCUIT) {
                     this.failureStatus = status;
                 }
                 break;
@@ -220,7 +220,7 @@ public class TrainDetection {
         return this.identity;
     }
     
-    public TD_Type getType() {
+    public TrainDetectionType getType() {
         return this.type;
     }
        

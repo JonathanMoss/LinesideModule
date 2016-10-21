@@ -10,6 +10,8 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.util.Arrays;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This class provides the functionality to connect to the Data Logger
@@ -100,15 +102,19 @@ public class DataLoggerClient extends Thread {
      * @param message A <code>String</code> representing the message to send to the DataLogger if a valid connection exists.
      * @param console A <code>Boolean</code> value, <i>true</i> prints the output of the message to the console, otherwise <i>false</i>. 
      * @param carriageReturn A <code>Boolean</code> value, <i>true</i> appends a carriage return to the end of the message, otherwise <i>false</i>.
-     * @throws IOException 
      */
-    public synchronized void sendToDataLogger (String message, Boolean console, Boolean carriageReturn) throws IOException {
+    public synchronized void sendToDataLogger (String message, Boolean console, Boolean carriageReturn) {
         if (console) { // If console is set to true, display message on the console.
             System.out.print(String.format("%s%s", message, (carriageReturn) ? LineSideModule.NEW_LINE : ""));
         }
-        if (this.connected && this.output != null) { // Check connected, if so - send message to the DataLogger.
+        if (this.connected && this.output != null) { try {
+            // Check connected, if so - send message to the DataLogger.
             this.output.writeUTF(String.format("LSM|%s|%s", this.lsmIdentity, message));
             this.output.flush(); 
+            } catch (IOException ex) {
+                Logger.getLogger(DataLoggerClient.class.getName()).log(Level.SEVERE, null, ex);
+            }
+
         }
     }
   
@@ -140,7 +146,7 @@ public class DataLoggerClient extends Thread {
                     this.sendToDataLogger(String.format ("%sWARNING: The DataLogger Server has severed the connection%s",
                         Colour.RED.getColour(), Colour.RESET.getColour())
                         , true, true);
-                } catch (IOException | NullPointerException e) {
+                } catch (NullPointerException e) {
                     System.out.println(String.format ("%s%s%s",
                         Colour.RED.getColour(), Arrays.toString(e.getStackTrace()), Colour.RESET.getColour())); 
                 }
@@ -163,7 +169,7 @@ public class DataLoggerClient extends Thread {
                         System.out.println(String.format ("%s%s%s",
                             Colour.RED.getColour(), Arrays.toString(ex.getStackTrace()), Colour.RESET.getColour()));
                     }
-                    } catch (IOException | NullPointerException npe) {
+                    } catch (NullPointerException npe) {
                         System.out.println(String.format ("%s%s%s",
                             Colour.RED.getColour(), Arrays.toString(npe.getStackTrace()), Colour.RESET.getColour()));
                     }

@@ -9,7 +9,7 @@ import java.util.*;
  */
 public class Points {
     
-    private final static HashMap <String, Integer> POINTS_HM = new HashMap <String, Integer>(); // Map to store each pointIndex and point Identity.
+    private final static HashMap <String, Integer> POINTS_HM = new HashMap <>(); // Map to store each pointIndex and point Identity.
     private static int pointsTally = 0; // Keeping a tally on how many points objects have been created.
     private final String identity; // Store the String Variable of the points identity, e.g. "4076A"
     private PointsPosition positionOfPoints; // Store the position of the points, either Normal, Reverse or Unknown.
@@ -188,8 +188,6 @@ public class Points {
     /**
      * Where Points objects are instantiated within an array, this method returns the associated index integer (Assuming this is the case).
      * Further, to be effective, all points should be instantiated within a single array.
-     * 
-     * This method is required by the Technicians Interface and Interlocking Components.
      * 
      * @param identity a <code>String</code> indicating the identity of the points.
      * @return <code>integer</code> representing the array index of the Points object within the array.

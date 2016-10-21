@@ -1,7 +1,11 @@
 package com.jgm.lineside.interlocking;
 
 import com.jgm.lineside.LineSideModule;
+import com.jgm.lineside.points.PointsPosition;
+import com.jgm.lineside.signals.Aspects;
 import java.io.IOException;
+import java.net.Socket;
+import java.util.ArrayList;
 
 /**
  * This Class provides static methods to handle and process incoming and outgoing messages.
@@ -10,7 +14,160 @@ import java.io.IOException;
  */
 public abstract class MessageHandler {
     
-    private static final String MESSAGE_END = "MESSAGE_END"; 
+    private static final String MESSAGE_END = "MESSAGE_END"; // Constant that MUST be the last portion of all messages!
+    private static final ArrayList <Message> OUTGOING_STACK = new ArrayList<>(); // An ArrayList that contains all outgoing messages.
+    private static final ArrayList <Message> INCOMING_STACK = new ArrayList<>(); // An ArrayList that contains all incoming messages.
+    private static OutgoingMessage outgoing = null; // The OutgoingMessage object used to send messages to the Remote Interlocking.
+    private static IncomingMessage incoming = null; // The IncomingMessage object where messages received from the Remote Interlocking are received.
+    private static Socket connectionToRemoteInterlocking = null; // The Socket (Connection) to the Remote Interlocking.
+    
+    /**
+     * This method closes the connection to the Remote Interlocking.
+     */
+    public static synchronized void closeConnections() {
+        
+        try {
+            outgoing.setConnected(false);
+            outgoing.close();
+            incoming.setConnected(false);
+            incoming.close();
+            connectionToRemoteInterlocking.close();
+        } catch (IOException ex) {}
+        
+    } 
+    
+    /** 
+     * This method removes messages from the outgoing message stack, based on hash.
+     * @param hash <code>Integer</code> The hash code of the message that should be removed from the outgoing message stack.
+     */
+    private static synchronized void removeAcknowledgedMessage (int hash) {
+        
+        for (int i = 0; i < OUTGOING_STACK.size(); i++) { // Loop through the stack.
+            if (OUTGOING_STACK.get(i).getMsgHash() == hash) {
+                OUTGOING_STACK.remove(i); // Remove the message as the hash's match.
+                break;
+            }
+        }
+    }
+    
+    /**
+     * This method processes each message contained within the incoming message stack.
+     */
+    protected static synchronized void processIncomingMessages() {
+    
+        while (!INCOMING_STACK.isEmpty()) { // Proceed if there are messages in the Incoming Message Stack (Queue)
+            switch (INCOMING_STACK.get(0).getMsgType()) { // Get the type of message.
+                case ACK:
+                    /*
+                     * Remove the corresponding message from the OUTGOING_MESSAGE_STACK.
+                     * Remember, the message body of an ACK message contains the hash code
+                     * sent message that requires acknowledgement.
+                     */
+                    removeAcknowledgedMessage(Integer.parseInt(INCOMING_STACK.get(0).getMsgBody()));
+                    break;
+                case SETUP:
+                    LineSideModule.sendUpdateAll();
+                    break;
+                case STATE_CHANGE:
+                    break;
+                case REQUEST:
+                   /*
+                    *   Examples:
+                    *   POINTS.994.REVERSE
+                    *   SIGNAL.CE.110.SINGLE_YELLOW
+                    */
+                    String[] splitMessage = INCOMING_STACK.get(0).getMsgBody().split("\\.");
+                    switch (splitMessage[0]) {
+                        case "POINTS":
+                            LineSideModule.incomingPointsRequest(splitMessage[1], PointsPosition.valueOf(splitMessage[2]));
+                            break;
+                        case "CONTROLLED_SIGNAL":
+                            LineSideModule.incomingControlledSignalRequest(splitMessage[1], splitMessage[2], Aspects.valueOf(splitMessage[3]));
+                            break;
+                        case "AUTOMATIC_SIGNAL":
+                            LineSideModule.incomingAutomaticSignalRequest(splitMessage[1], splitMessage[2], Aspects.valueOf(splitMessage[3]));
+                            break;
+                                    
+                    }
+                    
+                    break;
+                       
+            }
+            
+            INCOMING_STACK.remove(0); // Remove the message we have just processed from the message stack.
+        }
+        
+    }
+    
+    /**
+     * This method processes each message contained within the outgoing message stack.
+     */
+    protected static synchronized void processOutgoingMessages() {
+    
+        while (!OUTGOING_STACK.isEmpty()) {
+            switch (OUTGOING_STACK.get(0).getMsgType()) { // Get the type of message.
+                case ACK:
+                    // Send Message
+                    sendMessage (OUTGOING_STACK.get(0));
+                    // Remove from OUTGOING_STACK
+                    OUTGOING_STACK.remove(0);
+                    break;
+            }
+        }
+    }
+    
+    /**
+     * This method formats and sends a message to the OutgoingMessage object.
+     * 
+     * This method receives a Message Object, it then formats a String object and
+     * passes the formatted message to the OutgoingMessage object to send to the Remote Interlocking.
+     * This method should only be called from within the processOutgoingMessages method.
+     * 
+     * @param message A <code>Message</code> object required to be sent to the Remote Interlocking.
+     */
+    private static synchronized void sendMessage(Message message) {
+       
+        /*
+        *   Messages must be formatted thus: SENDER|TYPE|BODY|HASH|END_MESSAGE
+        */
+      
+        outgoing.sendMessageToRemoteInterlocking(String.format ("%s|%s|%s|%s|%s", 
+            LineSideModule.getLineSideModuleIdentity(), 
+            message.getMsgType().toString(), 
+            message.getMsgBody(), 
+            message.getMsgHash(), 
+            MESSAGE_END));
+        
+    }
+    
+    /**
+     * This method adds a message to the incoming message stack ready for processing.
+     * 
+     * Note: This method does not perform any checks on the message, this should be don prior to passing the message to this method.
+     * @param message A <code>String</code> that contains the message, as received from the Remote Interlocking, i.e. incomplete.
+     */
+    protected static synchronized void addIncomingMessageToStack(String message) {
+        
+        // Take the incoming message, and split it into 5 parts.
+        String[] splitMessage = message.split("\\|");
+        
+        // Create a new Message object and assign to the Incoming stack ArrayList.
+        INCOMING_STACK.add(new Message(
+            MessageType.valueOf(splitMessage[1]), splitMessage[2], Integer.parseInt(splitMessage[3])));
+        
+    }
+    
+    /**
+     * This method adds a message to the outgoing message stack ready for processing.
+     * 
+     * @param type A <code>MessageType</code> constant, indicating the type of message.
+     * @param message A <code>String</code> that contains the message, as received from the Remote Interlocking, i.e. incomplete.
+     */
+    public static synchronized void addOutgoingMessageToStack(MessageType type, String message) {
+        String sender = LineSideModule.getLineSideModuleIdentity();
+        int hashCode = String.format ("%s|%s|%s", sender, type.toString(), message).hashCode();
+        OUTGOING_STACK.add(new Message(type, message, hashCode));
+    }
     
     /**
      * This static method validates the format (not content) of a message.
@@ -58,8 +215,7 @@ public abstract class MessageHandler {
             if (!splitMessage[2].matches("^[A-Z_0-9.-]{4,}$")) {
                 throw new IOException ("Invalid message body");
             }
-            
-            
+           
             // Check HashCode.
             if (String.format ("%s|%s|%s", splitMessage[0], type.toString(), splitMessage[2]).hashCode()!= Integer.parseInt(splitMessage[3])) {
                 throw new IOException("Message hash code is invalid");
@@ -77,6 +233,53 @@ public abstract class MessageHandler {
         
         return true;
     }
-    
 
+    /**
+     * This method returns the OutgoingMessage object.
+     * @return The <code>OutgoingMessage</code> object associated with the Socket Connection to the Remote Interlocking. 
+     */
+    public static OutgoingMessage getOutgoing() {
+        return outgoing;
+    }
+    
+    /**
+     * This method sets the OutgoingMessage object.
+     * @param aOutgoing The <code>OutgoingMessage</code> object associated with the Socket Connection to the Remote Interlocking. 
+     */
+    public static void setOutgoing(OutgoingMessage aOutgoing) {
+        outgoing = aOutgoing;
+    }
+    
+    /**
+     * This method returns the IncomingMessage object.
+     * @return <code>IncomingMessage</code> object, associated with the Socket Connection to the RemoteInterlocking.
+     */
+    public static IncomingMessage getIncoming() {
+        return incoming;
+    }
+
+    /**
+     * This method sets the IncomingMessage object.
+     * @param aIncoming <code>IncomingMessage</code> object, associated with the Socket Connection to the RemoteInterlocking.
+     */
+    public static void setIncoming(IncomingMessage aIncoming) {
+        incoming = aIncoming;
+    }
+
+    /**
+     * This method returns the Socket Object that is connected to the RemoteInterlocking.
+     * @return <code>Socket</code> The connection to the RemoteInterlocking.
+     */
+    public static Socket getConnectionToRemoteInterlocking() {
+        return connectionToRemoteInterlocking;
+    }
+
+    /**
+     * This method sets the Socket Connection to the Remote Interlocking.
+     * @param aConnectionToRemoteInterlocking <code>Socket</code> The connection to the RemoteInterlocking.
+     */
+    public static void setConnectionToRemoteInterlocking(Socket aConnectionToRemoteInterlocking) {
+        connectionToRemoteInterlocking = aConnectionToRemoteInterlocking;
+    }
+    
 }

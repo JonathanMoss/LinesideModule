@@ -2,16 +2,19 @@ package com.jgm.lineside;
 
 import com.jgm.lineside.database.MySqlConnect;
 import com.jgm.lineside.traindetection.TrainDetection;
-import com.jgm.lineside.traindetection.TD_Type;
+import com.jgm.lineside.traindetection.TrainDetectionType;
 import com.jgm.lineside.datalogger.Colour;
 import com.jgm.lineside.datalogger.DataLoggerClient;
+import com.jgm.lineside.interlocking.MessageHandler;
+import com.jgm.lineside.interlocking.MessageType;
 import com.jgm.lineside.interlocking.RemoteInterlockingClient;
 import com.jgm.lineside.points.Points;
-import com.jgm.lineside.signals.Automatic_Signal_Type;
-import com.jgm.lineside.signals.Automatic_Signal;
+import com.jgm.lineside.points.PointsPosition;
+import com.jgm.lineside.signals.AutomaticSignalType;
+import com.jgm.lineside.signals.AutomaticSignal;
 import com.jgm.lineside.signals.Function;
-import com.jgm.lineside.signals.Controlled_Signal;
-import com.jgm.lineside.signals.Controlled_Signal_Type;
+import com.jgm.lineside.signals.ControlledSignal;
+import com.jgm.lineside.signals.SignalType;
 import com.jgm.lineside.signals.Aspects;
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -53,10 +56,10 @@ public class LineSideModule {
     private static ResultSet rs;
     
     // Define arrays to receive and create the controlled signals objects.
-    private static final ArrayList <Controlled_Signal> CONTROLLED_SIGNAL_ARRAY = new ArrayList<>();
+    private static final ArrayList <ControlledSignal> CONTROLLED_SIGNAL_ARRAY = new ArrayList<>();
     
-    // Define arrays to receive and create the controlled signals objects.
-    private static final ArrayList <Automatic_Signal> NON_CONTROLLED_SIGNAL_ARRAY = new ArrayList<>();
+    // Define arrays to receive and create the automatic signals objects.
+    private static final ArrayList <AutomaticSignal> AUTOMATIC_SIGNAL_ARRAY = new ArrayList<>();
     
     // Define arrays to receive and create the Train Detection objects.
     private static final ArrayList <TrainDetection> TRAIN_DETECTION_ARRAY = new ArrayList<>();
@@ -225,7 +228,7 @@ public class LineSideModule {
                 int recordsReturned = 0;
                 while (rs.next()) {
                     try {
-                        CONTROLLED_SIGNAL_ARRAY.add(new Controlled_Signal(rs.getString("prefix"), rs.getString("identity"), Controlled_Signal_Type.valueOf(rs.getString("type"))));
+                        CONTROLLED_SIGNAL_ARRAY.add(new ControlledSignal(rs.getString("prefix"), rs.getString("identity"), SignalType.valueOf(rs.getString("type"))));
                         recordsReturned ++;
                     } catch (Exception ex) {
                     dataLogger.sendToDataLogger(String.format ("%s%s%s",
@@ -275,15 +278,15 @@ public class LineSideModule {
                 int recordsReturned = 0;
                 while (rs.next()) {
                     try {
-                        NON_CONTROLLED_SIGNAL_ARRAY.add(new Automatic_Signal(rs.getString("prefix"), rs.getString("identity"), 
-                            Automatic_Signal_Type.valueOf(rs.getString("type")), rs.getString("line"), rs.getString("read_direction"), 
+                        AUTOMATIC_SIGNAL_ARRAY.add(new AutomaticSignal(rs.getString("prefix"), rs.getString("identity"), 
+                            AutomaticSignalType.valueOf(rs.getString("type")), rs.getString("line"), rs.getString("read_direction"), 
                             Function.valueOf(rs.getString("function")), rs.getString("applicable_Signal")));
                         recordsReturned ++;
                     } catch (Exception ex) {
                         dataLogger.sendToDataLogger(String.format ("%s%s%s",
                             Colour.RED.getColour(), getFailed(), Colour.RESET.getColour()), 
                             true, true);
-                        ExitCommandLine(String.format ("%sERROR: Cannot obtain Non-Controlled Signal details from the database.%s",
+                        ExitCommandLine(String.format ("%sERROR: Cannot obtain Automatic Signal details from the database.%s",
                             Colour.RED.getColour(), Colour.RESET.getColour()));
                     }
                 }
@@ -291,7 +294,7 @@ public class LineSideModule {
                     dataLogger.sendToDataLogger(String.format ("%s%s%s",
                         Colour.RED.getColour(), getFailed(), Colour.RESET.getColour()), 
                         true, true);
-                    ExitCommandLine(String.format ("%sERROR: Cannot obtain Non-Controlled Signal details from the database.%s",
+                    ExitCommandLine(String.format ("%sERROR: Cannot obtain Automatic Signal details from the database.%s",
                         Colour.RED.getColour(), Colour.RESET.getColour()));
                 }
                 dataLogger.sendToDataLogger(String.format ("%s%s%s",
@@ -300,16 +303,16 @@ public class LineSideModule {
                 System.out.println();
 
                 dataLogger.sendToDataLogger(String.format ("%s%-22s%-18s%-16s%s%s",
-                    Colour.BLUE.getColour(), "Non-Controlled Signal", "Type", "Current Aspect", "Function", Colour.RESET.getColour()), 
+                    Colour.BLUE.getColour(), "Automatic Signal", "Type", "Current Aspect", "Function", Colour.RESET.getColour()), 
                     true, true);
                 dataLogger.sendToDataLogger(String.format ("%s------------------------------------------------------------------------%s",
                     Colour.BLUE.getColour(), Colour.RESET.getColour()),
                     true, true);
-                for (int i = 0; i < NON_CONTROLLED_SIGNAL_ARRAY.size(); i++) {
+                for (int i = 0; i < AUTOMATIC_SIGNAL_ARRAY.size(); i++) {
                     dataLogger.sendToDataLogger(String.format("%s%-22s%-18s%-26s%s%s", 
-                        Colour.BLUE.getColour(), NON_CONTROLLED_SIGNAL_ARRAY.get(i).getSignalIdentity(),NON_CONTROLLED_SIGNAL_ARRAY.get(i).getType(), 
-                        (NON_CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString().contains("YELLOW") || NON_CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString().contains("WARNING"))? Colour.YELLOW.getColour() + NON_CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString() + Colour.BLUE.getColour() : Colour.RED.getColour() + NON_CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString() + Colour.BLUE.getColour(), 
-                        NON_CONTROLLED_SIGNAL_ARRAY.get(i).getFunction(), Colour.RESET.getColour()), 
+                        Colour.BLUE.getColour(), AUTOMATIC_SIGNAL_ARRAY.get(i).getSignalIdentity(),AUTOMATIC_SIGNAL_ARRAY.get(i).getType(), 
+                        (AUTOMATIC_SIGNAL_ARRAY.get(i).getCurrentAspect().toString().contains("YELLOW") || AUTOMATIC_SIGNAL_ARRAY.get(i).getCurrentAspect().toString().contains("WARNING"))? Colour.YELLOW.getColour() + AUTOMATIC_SIGNAL_ARRAY.get(i).getCurrentAspect().toString() + Colour.BLUE.getColour() : Colour.RED.getColour() + AUTOMATIC_SIGNAL_ARRAY.get(i).getCurrentAspect().toString() + Colour.BLUE.getColour(), 
+                        AUTOMATIC_SIGNAL_ARRAY.get(i).getFunction(), Colour.RESET.getColour()), 
                         true, true);
                 }
                 System.out.println();
@@ -317,7 +320,7 @@ public class LineSideModule {
                 dataLogger.sendToDataLogger(String.format ("%s%s%s",
                     Colour.RED.getColour(), getFailed(), Colour.RESET.getColour()), 
                     true, true);
-                ExitCommandLine(String.format ("%sERROR: Cannot obtain Non-Controlled Signal details from the database.%s",
+                ExitCommandLine(String.format ("%sERROR: Cannot obtain Automatic Signal details from the database.%s",
                     Colour.RED.getColour(), Colour.RESET.getColour()));
             }
             
@@ -328,7 +331,7 @@ public class LineSideModule {
                 int recordsReturned = 0;
                 while (rs.next()) {
                     try {
-                        TRAIN_DETECTION_ARRAY.add(new TrainDetection(rs.getString("identity"), TD_Type.valueOf(rs.getString("type"))));
+                        TRAIN_DETECTION_ARRAY.add(new TrainDetection(rs.getString("identity"), TrainDetectionType.valueOf(rs.getString("type"))));
                         recordsReturned ++;
                     } catch (Exception ex) {
                         dataLogger.sendToDataLogger(String.format ("%s%s%s",
@@ -373,61 +376,13 @@ public class LineSideModule {
         
         // 10) Open a connection to the Remote Interlocking.
             dataLogger.sendToDataLogger("Attempt a connection with the Remote Interlocking...", true, false);
-            remoteInterlocking = new RemoteInterlockingClient(riHost, Integer.parseInt(riPort), riIdentity);
+            remoteInterlocking = new RemoteInterlockingClient(riHost, Integer.parseInt(riPort));
             remoteInterlocking.setName("RemoteInterlockingClient");
             remoteInterlocking.start();
             try {
                 Thread.sleep(3000);
             } catch (InterruptedException ex) {
 
-            }
-            
-            if (setup) {
-                String msgBody = String.format ("%s|HAND_SHAKE|NULL", lsmIdentity);
-                String msgEnd = "|END_MESSAGE";
-                remoteInterlocking.outgoing.sendMessageToRemoteInterlocking(String.format ("%s|%s%s",
-                    msgBody, msgBody.hashCode(), msgEnd));
-                try {
-                    Thread.sleep(10000);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(LineSideModule.class.getName()).log(Level.SEVERE, null, ex);
-                }
-//                msgBody = String.format ("%s|SETUP|POINTS.994.NORMAL.TRUE", lsmIdentity);
-//                remoteInterlocking.outgoing.sendMessageToRemoteInterlocking(String.format ("%s|%s%s",
-//                    msgBody, msgBody.hashCode(), msgEnd));
-                
-                // Points
-                for (int i = 0; i < POINTS_ARRAY.size(); i++) {
-                    msgBody = String.format ("%s|SETUP|POINTS.%s.%s.%s", 
-                        lsmIdentity, POINTS_ARRAY.get(i).getIdentity(),POINTS_ARRAY.get(i).getPointsPosition().toString(), POINTS_ARRAY.get(i).getDetectionStatus());
-                    remoteInterlocking.outgoing.sendMessageToRemoteInterlocking(String.format ("%s|%s%s",
-                        msgBody, msgBody.hashCode(), msgEnd));
-                }
-                
-                // Controlled Signals
-                for (int i = 0; i < CONTROLLED_SIGNAL_ARRAY.size(); i++) {
-                    msgBody = String.format ("%s|SETUP|CONTROLLED_SIGNAL.%s.%s.%s", 
-                        lsmIdentity, CONTROLLED_SIGNAL_ARRAY.get(i).getPrefix(), CONTROLLED_SIGNAL_ARRAY.get(i).getId(), CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString());
-                    remoteInterlocking.outgoing.sendMessageToRemoteInterlocking(String.format ("%s|%s%s",
-                        msgBody, msgBody.hashCode(), msgEnd));
-                }
-                
-                // Non-Controlled Signals
-                for (int i = 0; i < NON_CONTROLLED_SIGNAL_ARRAY.size(); i++) {
-                    msgBody = String.format ("%s|SETUP|AUTOMATIC_SIGNALS.%s.%s.%s", 
-                        lsmIdentity, NON_CONTROLLED_SIGNAL_ARRAY.get(i).getPrefix(), NON_CONTROLLED_SIGNAL_ARRAY.get(i).getId(), NON_CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString());
-                    remoteInterlocking.outgoing.sendMessageToRemoteInterlocking(String.format ("%s|%s%s",
-                        msgBody, msgBody.hashCode(), msgEnd));
-                }
-                
-                // Train Detection Sections
-                for (int i = 0; i < TRAIN_DETECTION_ARRAY.size(); i++) {
-                    msgBody = String.format ("%s|SETUP|TRAIN_DETECTION.%s.%s", 
-                        lsmIdentity, TRAIN_DETECTION_ARRAY.get(i).getIdentity(), TRAIN_DETECTION_ARRAY.get(i).getDetectionStatus().toString());
-                    remoteInterlocking.outgoing.sendMessageToRemoteInterlocking(String.format ("%s|%s%s",
-                        msgBody, msgBody.hashCode(), msgEnd));
-                }
-                
             }
             
             while (setup) {
@@ -444,20 +399,7 @@ public class LineSideModule {
            ExitCommandLine("ERROR: Incorrect number of command line arguments.");
            
        }
-       
-       //A few examples...
-//       try {
-//           
-//           POINTS_ARRAY.get(Points.returnPointIndex("940")).movePointsUnderPower(PointsPosition.REVERSE);
-//           System.out.println(CONTROLLED_SIGNAL_ARRAY.get(Controlled_Signal.returnControlledSignalIndex("CE175")).getCurrentAspect());
-//           System.out.println(TRAIN_DETECTION_ARRAY.get(TrainDetection.returnDetectionIndex("T92")).getDetectionStatus());
-//            
-//       } catch (NullPointerException npE) {
-//           
-//           // Points with the specified identity cannot be found.
-//           
-//       }
-       
+  
     }
     
     /**
@@ -470,11 +412,124 @@ public class LineSideModule {
         String msg;
         msg = String.format("Line Side Module cannot continue [%s]", message);
         if (dataLogger != null) {
-            try {
-                dataLogger.sendToDataLogger(message, Boolean.FALSE, Boolean.TRUE);
-            } catch (IOException ex) {}
+            dataLogger.sendToDataLogger(message, Boolean.FALSE, Boolean.TRUE);
         }
         System.out.println(msg);
         System.exit(0);
     }
+    
+    /**
+     * This Method sends a message to the Remote Interlocking regarding a Points object
+     * @param points <code>Points</code> object that requires an update sending to the Remote Interlocking.
+     */
+    public static void sendUpdatePoints (Points points) {
+        
+        MessageHandler.addOutgoingMessageToStack(MessageType.STATE_CHANGE, String.format ("POINTS.%s.%s.%s",
+            points.getIdentity(), points.getPointsPosition(), points.getDetectionStatus()));
+        
+    }
+    
+    /**
+     * This Method sends a message to the Remote Interlocking regarding a Controlled Signal object
+     * @param signal <code>ControlledSignal</code> object that requires an update sending to the Remote Interlocking.
+     */
+    public static void sendUpdateControlledSignal (ControlledSignal signal) {
+        
+        MessageHandler.addOutgoingMessageToStack(MessageType.STATE_CHANGE, String.format ("CONTROLLED_SIGNAL.%s.%s.%s",
+            signal.getPrefix(), signal.getId(), signal.getCurrentAspect().toString()));
+        
+    }
+    
+    /**
+     * This Method sends a message to the Remote Interlocking regarding an Automatic Signal object
+     * @param signal <code>AutomaticSignal</code> object that requires an update sending to the Remote Interlocking.
+     */
+    public static void sendUpdateAutomaticSignal (AutomaticSignal signal) {
+        
+        MessageHandler.addOutgoingMessageToStack(MessageType.STATE_CHANGE, String.format ("AUTOMATIC_SIGNAL.%s.%s.%s",
+            signal.getPrefix(), signal.getId(), signal.getCurrentAspect().toString()));
+        
+    }
+    
+    /**
+     * This Method sends a message to the Remote Interlocking regarding a Train Detection Section object
+     * @param section <code>TrainDetection</code> object that requires an update sending to the Remote Interlocking.
+     */
+    public static void sendUpdateTrainDetection (TrainDetection section) {
+        
+        MessageHandler.addOutgoingMessageToStack(MessageType.STATE_CHANGE, String.format ("TRAIN_DETECTION.%s.%s",
+            section.getIdentity(), section.getDetectionStatus()));
+        
+    }
+    
+    /**
+     * This method sends a status update for all assets to the Remote Interlocking.
+     */
+    public static void sendUpdateAll() {
+        
+        // Points
+        for (int i = 0; i < POINTS_ARRAY.size(); i++) {
+            sendUpdatePoints(POINTS_ARRAY.get(i));
+        }
+
+        // Controlled Signals
+        for (int i = 0; i < CONTROLLED_SIGNAL_ARRAY.size(); i++) {
+            sendUpdateControlledSignal(CONTROLLED_SIGNAL_ARRAY.get(i));
+        }
+
+        // Automatic Signals
+        for (int i = 0; i < AUTOMATIC_SIGNAL_ARRAY.size(); i++) {
+            sendUpdateAutomaticSignal(AUTOMATIC_SIGNAL_ARRAY.get(i));
+        }
+
+        // Train Detection Sections
+        for (int i = 0; i < TRAIN_DETECTION_ARRAY.size(); i++) {
+            sendUpdateTrainDetection(TRAIN_DETECTION_ARRAY.get(i));
+        }
+        
+    }
+    
+    /**
+     * This method receives and actions a request to operate a set of points to the required position.
+     * 
+     * Note: Compliance with the request is not guaranteed; the only guarantee is that an attempt shall be made to move the points
+     * to the required position and a further attempt shall be made to obtain detection.
+     * 
+     * @param identity <code>String</code> containing the identity of the points.
+     * @param requestedPosition <code>PointsPosition</code> the requested position of the points.
+     */
+    public static synchronized void incomingPointsRequest (String identity, PointsPosition requestedPosition) {
+    
+        POINTS_ARRAY.get(Points.returnPointIndex(identity)).movePointsUnderPower(requestedPosition);
+         
+    }
+    
+    /**
+     * This method receives and actions a request to display a particular aspect at a Controlled Signal.
+     * 
+     * Note: Compliance with the request is not guaranteed; the only guarantee is that an attempt shall be made to show the requested
+     * Signal Aspect.
+     * 
+     * @param prefix <code>String</code> The prefix of the Signal.
+     * @param identity <code>String</code> The identity of the Signal.
+     * @param requestedAspect <code>Aspects</code> The requested aspect.
+     */
+    public static synchronized void incomingControlledSignalRequest (String prefix, String identity, Aspects requestedAspect) {
+    
+        CONTROLLED_SIGNAL_ARRAY.get(ControlledSignal.returnControlledSignalIndex(String.format ("%s%s", 
+            prefix, identity))).requestSignalAspect(requestedAspect);
+        
+    }
+    
+    /**
+     * 
+     * @param prefix
+     * @param identity
+     * @param requestedAspect 
+     */
+    public static synchronized void incomingAutomaticSignalRequest (String prefix, String identity, Aspects requestedAspect) {
+        
+    }
+    
+    
 }

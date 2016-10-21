@@ -6,7 +6,7 @@ import java.util.HashMap;
  *
  * @author Jonathan Moss
  */
-public class Automatic_Signal {
+public class AutomaticSignal {
     
     private static int automaticSignalTally = 0; // A static class variable to contain an integer regarding how many Automatic Signals have been created.
     private final static HashMap <String, Integer> AUTOMATIC_SIGNALS_HM = new HashMap <>(); // Map to store each Train Detection Index and Signal Identity.
@@ -20,7 +20,7 @@ public class Automatic_Signal {
     }
     private final String prefix;
     private final String identity;
-    private final Automatic_Signal_Type type;
+    private final AutomaticSignalType type;
     private final String line;
     private final String readDirection;
     private final Function function;
@@ -39,7 +39,7 @@ public class Automatic_Signal {
      * @param function
      * @param applicableSignal 
      */
-    public Automatic_Signal (String prefix, String identity, Automatic_Signal_Type type, String line, String readDirection, Function function, String applicableSignal) {
+    public AutomaticSignal (String prefix, String identity, AutomaticSignalType type, String line, String readDirection, Function function, String applicableSignal) {
         this.prefix = prefix;
         this.identity = identity;
         this.type = type;
@@ -47,8 +47,8 @@ public class Automatic_Signal {
         this.readDirection = readDirection;
         this.function = function;
         this.applicableSignal = applicableSignal;
-        Automatic_Signal.AUTOMATIC_SIGNALS_HM.put(this.identity, Automatic_Signal.automaticSignalTally);
-        Automatic_Signal.automaticSignalTally ++;
+        AutomaticSignal.AUTOMATIC_SIGNALS_HM.put(this.identity, AutomaticSignal.automaticSignalTally);
+        AutomaticSignal.automaticSignalTally ++;
         this.currentAspect = this.type.returnApplicableAspects()[0];
     }
     
@@ -56,7 +56,7 @@ public class Automatic_Signal {
         return (this.prefix + this.identity);
     }
     
-    public Automatic_Signal_Type getType() {
+    public AutomaticSignalType getType() {
         return this.type;
     }
     
@@ -78,7 +78,7 @@ public class Automatic_Signal {
     * @return <code>integer</code> representing the array index of the Signal object within the array.
     */
     public static int returnAutomaticSignalIndex(String identity) {
-        return Automatic_Signal.AUTOMATIC_SIGNALS_HM.get(identity);  
+        return AutomaticSignal.AUTOMATIC_SIGNALS_HM.get(identity);  
     }
     
 }

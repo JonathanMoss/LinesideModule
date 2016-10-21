@@ -1,5 +1,6 @@
 package com.jgm.lineside.signals;
 
+import com.jgm.lineside.LineSideModule;
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -10,9 +11,9 @@ import java.util.HashMap;
  * @author Jonathan Moss
  * @version v1.0 September 2016
  */
-public class Controlled_Signal {
+public class ControlledSignal {
     
-    private final Controlled_Signal_Type signalType;
+    private final SignalType signalType;
     private Aspects currentAspect;
 
     public String getPrefix() {
@@ -32,11 +33,11 @@ public class Controlled_Signal {
      * This is the constructor method for the Signal Class.
      * @param prefix A <code>String</code> representing the signal prefix.
      * @param id A <code>String</code> representing the signal identity.
-     * @param signalType A <code>Controlled_Signal_Type</code> object representing the type of Signal being instantiated.
+     * @param signalType A <code>SignalType</code> object representing the type of Signal being instantiated.
      * 
      * @throws Exception
      */
-    public Controlled_Signal (String prefix, String id, Controlled_Signal_Type signalType) throws Exception{
+    public ControlledSignal (String prefix, String id, SignalType signalType) throws Exception{
         
         // Parameter Validation.   
         if (!prefix.toUpperCase().matches("^[A-Z]{2,3}[A-Za-z0-9]{0,1}$")) {
@@ -54,7 +55,7 @@ public class Controlled_Signal {
         this.signalType = signalType;
         
         // Setup the initial aspect.
-        if (this.signalType.equals(Controlled_Signal_Type.COLOUR_LIGHT_3_CA) || this.signalType.equals(Controlled_Signal_Type.COLOUR_LIGHT_4_CA)) {
+        if (this.signalType.equals(SignalType.COLOUR_LIGHT_3_CA) || this.signalType.equals(SignalType.COLOUR_LIGHT_4_CA)) {
             this.currentAspect = this.signalType.returnApplicableAspects()[1];
         } else {
             this.currentAspect = this.signalType.returnApplicableAspects()[0];
@@ -62,7 +63,7 @@ public class Controlled_Signal {
         
         // Setting up a signal lamp for each aspect, except the aspects that cannot be shown - such as black!.
         int x;
-        if (this.signalType.equals(Controlled_Signal_Type.COLOUR_LIGHT_4)) {
+        if (this.signalType.equals(SignalType.COLOUR_LIGHT_4)) {
             x = 2;
         } else {
             x = 1;
@@ -75,13 +76,13 @@ public class Controlled_Signal {
             //System.out.println(String.format("%s aspect lamp: %s", this.signalType.returnApplicableAspects()[i], this.signalLamp[i].toString()));
         }
         
-        Controlled_Signal.SIGNAL_HM.put(String.format("%s%s", this.prefix, this.id),Controlled_Signal.signalTally);
-        Controlled_Signal.signalTally ++;
+        ControlledSignal.SIGNAL_HM.put(String.format("%s%s", this.prefix, this.id),ControlledSignal.signalTally);
+        ControlledSignal.signalTally ++;
         
     }
     
      /**
-     * Where Controlled_Signal objects are instantiated within an array, this method returns the associated index integer (Assuming this is the case).
+     * Where ControlledSignal objects are instantiated within an array, this method returns the associated index integer (Assuming this is the case).
      * Further, to be effective, all signals should be instantiated within a single array.
      * 
      * This method is required by the Technicians Interface and Interlocking Components.
@@ -91,7 +92,7 @@ public class Controlled_Signal {
      */
     public static int returnControlledSignalIndex(String identity) {
         
-        return Controlled_Signal.SIGNAL_HM.get(identity);
+        return ControlledSignal.SIGNAL_HM.get(identity);
             
     }
     
@@ -138,9 +139,9 @@ public class Controlled_Signal {
      * This method is used to attempt to set the aspect of the signal.
      * 
      * @param requestedAspect An <code>integer</code> value representing the aspect that the remote interlocking requires the signal to display.
-     * @return An <code>Aspects</code> object indicating the current Controlled_Signal Aspect after the method has ran.
+     * @return An <code>Aspects</code> object indicating the current ControlledSignal Aspect after the method has ran.
      */
-    protected Aspects requestSignalAspect (Aspects requestedAspect) {
+    public Aspects requestSignalAspect (Aspects requestedAspect) {
         
         // BLACK and TOP_YELLOW aspects are not valid requested aspects. They are an effect of other conditions - check to make sure they have not been requested.
         if (requestedAspect.equals(Aspects.BLACK) || requestedAspect.equals(Aspects.TOP_YELLOW)) {
@@ -176,6 +177,8 @@ public class Controlled_Signal {
             }
             
         }
+        
+        LineSideModule.sendUpdateControlledSignal(this);
         return this.currentAspect;
 
     }
@@ -183,9 +186,9 @@ public class Controlled_Signal {
     /**
      * This method returns the type of the signal.
      * 
-     * @return A <code>Controlled_Signal_Type</code> object that represents the type of signal.
+     * @return A <code>SignalType</code> object that represents the type of signal.
      */
-    public Controlled_Signal_Type getSignalType() {
+    public SignalType getSignalType() {
         return this.signalType;
     }
     
