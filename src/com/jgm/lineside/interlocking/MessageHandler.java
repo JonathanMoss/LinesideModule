@@ -2,7 +2,6 @@ package com.jgm.lineside.interlocking;
 
 import com.jgm.lineside.LineSideModule;
 import com.jgm.lineside.points.PointsPosition;
-import com.jgm.lineside.signals.Aspects;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -82,10 +81,10 @@ public abstract class MessageHandler {
                             LineSideModule.incomingPointsRequest(splitMessage[1], PointsPosition.valueOf(splitMessage[2]));
                             break;
                         case "CONTROLLED_SIGNAL":
-                            LineSideModule.incomingControlledSignalRequest(splitMessage[1], splitMessage[2], Aspects.valueOf(splitMessage[3]));
+                            //LineSideModule.incomingControlledSignalRequest(splitMessage[1], splitMessage[2], Aspects.valueOf(splitMessage[3]));
                             break;
                         case "AUTOMATIC_SIGNAL":
-                            LineSideModule.incomingAutomaticSignalRequest(splitMessage[1], splitMessage[2], Aspects.valueOf(splitMessage[3]));
+                            //LineSideModule.incomingAutomaticSignalRequest(splitMessage[1], splitMessage[2], Aspects.valueOf(splitMessage[3]));
                             break;
                                     
                     }

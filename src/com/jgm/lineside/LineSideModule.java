@@ -10,18 +10,13 @@ import com.jgm.lineside.interlocking.MessageType;
 import com.jgm.lineside.interlocking.RemoteInterlockingClient;
 import com.jgm.lineside.points.Points;
 import com.jgm.lineside.points.PointsPosition;
-import com.jgm.lineside.signals.AutomaticSignalType;
-import com.jgm.lineside.signals.AutomaticSignal;
-import com.jgm.lineside.signals.Function;
 import com.jgm.lineside.signals.ControlledSignal;
+import com.jgm.lineside.signals.Signal;
 import com.jgm.lineside.signals.SignalType;
-import com.jgm.lineside.signals.Aspects;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * This class provides the Line Side Module Functionality.
@@ -56,10 +51,8 @@ public class LineSideModule {
     private static ResultSet rs;
     
     // Define arrays to receive and create the controlled signals objects.
-    private static final ArrayList <ControlledSignal> CONTROLLED_SIGNAL_ARRAY = new ArrayList<>();
-    
-    // Define arrays to receive and create the automatic signals objects.
-    private static final ArrayList <AutomaticSignal> AUTOMATIC_SIGNAL_ARRAY = new ArrayList<>();
+    private static final ArrayList <Signal> CONTROLLED_SIGNAL_ARRAY = new ArrayList<>();
+
     
     // Define arrays to receive and create the Train Detection objects.
     private static final ArrayList <TrainDetection> TRAIN_DETECTION_ARRAY = new ArrayList<>();
@@ -224,13 +217,14 @@ public class LineSideModule {
         // 7) Build the Controlled Signals.
             dataLogger.sendToDataLogger("Connected to remote DB - looking for Controlled Signals assigned to this Line Side Module...", true, false);
             try {
-                rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM Controlled_Signals WHERE parentLinesideModule = %d;", lsmIndexKey));
+                rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM `Controlled_Signals` WHERE `parentLinesideModule` = %d;", lsmIndexKey));
                 int recordsReturned = 0;
                 while (rs.next()) {
                     try {
                         CONTROLLED_SIGNAL_ARRAY.add(new ControlledSignal(rs.getString("prefix"), rs.getString("identity"), SignalType.valueOf(rs.getString("type"))));
                         recordsReturned ++;
                     } catch (Exception ex) {
+                        ex.printStackTrace();
                     dataLogger.sendToDataLogger(String.format ("%s%s%s",
                         Colour.RED.getColour(), getFailed(), Colour.RESET.getColour()), 
                         true, true);

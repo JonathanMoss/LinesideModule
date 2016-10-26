@@ -1,88 +1,43 @@
 package com.jgm.lineside.signals;
 
-import java.util.HashMap;
-
 /**
- *
+ * This Class provides the blueprint for an Automatic Signal.
+ * 
  * @author Jonathan Moss
+ * @version v1.0 October 2016
  */
-public class AutomaticSignal {
-    
-    private static int automaticSignalTally = 0; // A static class variable to contain an integer regarding how many Automatic Signals have been created.
-    private final static HashMap <String, Integer> AUTOMATIC_SIGNALS_HM = new HashMap <>(); // Map to store each Train Detection Index and Signal Identity.
-
-    public String getPrefix() {
-        return prefix;
-    }
-
-    public String getId() {
-        return identity;
-    }
-    private final String prefix;
-    private final String identity;
-    private final AutomaticSignalType type;
-    private final String line;
-    private final String readDirection;
-    private final Function function;
-    private final String applicableSignal;
-    private Aspects currentAspect;
+public class AutomaticSignal extends Signal {
     
     /**
-     * This is the constructor for an Automatic_Signal object.
+     * This is the Constructor Method for an Automatic Signal Object.
      * 
-     * An automatic signal is defined as any signal that is not controlled by the actions of the Signaller.
-     * @param prefix
-     * @param identity
-     * @param type
-     * @param line
-     * @param readDirection
-     * @param function
-     * @param applicableSignal 
+     * @param signalPrefix <code>String</code> The Prefix of the signal.
+     * @param signalIdentity <code>String</code> The Identity of the signal.
+     * @param signalType <code>SignalType</code> The Type of Signal.
+     * @param applicableSignalPrefix <code>String</code> The Prefix of the applicableSignal.
+     * @param applicableSignalIdentity <code>String</code> The Identity of the applicableSignal.
      */
-    public AutomaticSignal (String prefix, String identity, AutomaticSignalType type, String line, String readDirection, Function function, String applicableSignal) {
-        this.prefix = prefix;
-        this.identity = identity;
-        this.type = type;
-        this.line = line;
-        this.readDirection = readDirection;
-        this.function = function;
-        this.applicableSignal = applicableSignal;
-        AutomaticSignal.AUTOMATIC_SIGNALS_HM.put(this.identity, AutomaticSignal.automaticSignalTally);
-        AutomaticSignal.automaticSignalTally ++;
-        this.currentAspect = this.type.returnApplicableAspects()[0];
-    }
-    
-    public String getSignalIdentity() {
-        return (this.prefix + this.identity);
-    }
-    
-    public AutomaticSignalType getType() {
-        return this.type;
-    }
-    
-    public Function getFunction() {
-        return this.function;
-    }
-    
-    public Aspects getCurrentAspect() {
-        return this.currentAspect;
+    public AutomaticSignal(String signalPrefix, String signalIdentity, SignalType signalType, String applicableSignalPrefix, String applicableSignalIdentity) {
+        
+        super(signalPrefix, signalIdentity, signalType);
+        super.informApplicableSignal (applicableSignalPrefix, applicableSignalIdentity);
+        super.setDisplayHighestAspect(true);
+        
     }
     
     /**
-    * Where Automatic Signal objects are instantiated within an array, this method returns the associated index integer (Assuming this is the case).
-    * Further, to be effective, all Automatic Signal objects should be instantiated within a single array.
-    * 
-    * This method is required by the Technicians Interface and Interlocking Components.
-    * 
-    * @param identity a <code>String</code> indicating the identity of the points.
-    * @return <code>integer</code> representing the array index of the Signal object within the array.
-    */
-    public static int returnAutomaticSignalIndex(String identity) {
-        return AutomaticSignal.AUTOMATIC_SIGNALS_HM.get(identity);  
+     * This method Simulates an Automatic Signal Being Replaced to Danger.
+     */
+    public void replaceToDanger() {
+        super.setDisplayHighestAspect(false);
     }
+    
+    /**
+     * This method simulates the ability to restore an automatic signal to automatic working following being replaced to danger.
+     */
+    public void restoreReplacement() {
+        super.setDisplayHighestAspect(true);
+    }
+
     
 }
-
-
-
-
