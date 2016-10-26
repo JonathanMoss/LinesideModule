@@ -139,4 +139,10 @@ public interface Signals {
      * @return <code>Boolean</code> <i>'true'</i> is returned to indicate the aspect is valid, otherwise <i>'false'</i>.
      */
     Boolean validateAspectAgainstNextAspect (SignalAspect aspect);
+    
+    /**
+     * This method returns the full signal identity (prefix + identity) in a single string.
+     * @return <code>String</code> The full signal identity (prefix + identity) in a single string.
+     */
+    String getFullSignalIdentity();
 }

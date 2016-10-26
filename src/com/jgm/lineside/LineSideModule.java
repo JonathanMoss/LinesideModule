@@ -12,6 +12,7 @@ import com.jgm.lineside.points.Points;
 import com.jgm.lineside.points.PointsPosition;
 import com.jgm.lineside.signals.ControlledSignal;
 import com.jgm.lineside.signals.Signal;
+import com.jgm.lineside.signals.SignalAspect;
 import com.jgm.lineside.signals.SignalType;
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -252,7 +253,7 @@ public class LineSideModule {
                 for (int i = 0; i < CONTROLLED_SIGNAL_ARRAY.size(); i++) {
                     dataLogger.sendToDataLogger(String.format("%s%-19s%-19s%-10s%s", 
                         Colour.BLUE.getColour(), CONTROLLED_SIGNAL_ARRAY.get(i).getFullSignalIdentity(), CONTROLLED_SIGNAL_ARRAY.get(i).getSignalType().toString(), 
-                        (CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect() == Aspects.RED) ? Colour.RED.getColour() + CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString() + Colour.RESET.getColour() : CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString(), 
+                        (CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect() == SignalAspect.RED) ? Colour.RED.getColour() + CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString() + Colour.RESET.getColour() : CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString(), 
                         Colour.RESET.getColour()), 
                         true, true);
                 }
@@ -506,9 +507,9 @@ public class LineSideModule {
      * 
      * @param prefix <code>String</code> The prefix of the Signal.
      * @param identity <code>String</code> The identity of the Signal.
-     * @param requestedAspect <code>Aspects</code> The requested aspect.
+     * @param requestedAspect <code>SignalAspect</code> The requested aspect.
      */
-    public static synchronized void incomingControlledSignalRequest (String prefix, String identity, Aspects requestedAspect) {
+    public static synchronized void incomingControlledSignalRequest (String prefix, String identity, SignalAspect requestedAspect) {
     
         CONTROLLED_SIGNAL_ARRAY.get(ControlledSignal.returnControlledSignalIndex(String.format ("%s%s", 
             prefix, identity))).requestSignalAspect(requestedAspect);
@@ -521,7 +522,7 @@ public class LineSideModule {
      * @param identity
      * @param requestedAspect 
      */
-    public static synchronized void incomingAutomaticSignalRequest (String prefix, String identity, Aspects requestedAspect) {
+    public static synchronized void incomingAutomaticSignalRequest (String prefix, String identity, SignalAspect requestedAspect) {
         
     }
     

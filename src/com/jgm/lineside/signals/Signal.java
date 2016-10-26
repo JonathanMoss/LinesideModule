@@ -417,4 +417,9 @@ public class Signal implements Signals {
         return false;
     }
 
+    @Override
+    public String getFullSignalIdentity() {
+        return String.format ("%s%s", this.getPrefix(), this.getIdentity());
+    }
+
 }
