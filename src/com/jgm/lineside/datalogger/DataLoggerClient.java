@@ -3,6 +3,7 @@ package com.jgm.lineside.datalogger;
 import static com.jgm.lineside.ApplicationUtilities.getFailed;
 import static com.jgm.lineside.ApplicationUtilities.getNewLine;
 import static com.jgm.lineside.ApplicationUtilities.getOK;
+import com.jgm.lineside.LineSideModule;
 import customexceptions.DataLoggerException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -76,7 +77,7 @@ public class DataLoggerClient extends Thread {
      * This method sets the ConnectionStatus of the DataLoggerClient object.
      * @param connectionStatus <code>ConnectionStatus</code> A constant which informs the object the status of the connection to the DataLogger.
      */
-    private synchronized void setConnectionStatus (ConnectionStatus connectionStatus) {
+    public synchronized void setConnectionStatus (ConnectionStatus connectionStatus) {
         
         this.connectionStatus = connectionStatus;
         
@@ -96,6 +97,7 @@ public class DataLoggerClient extends Thread {
      * @param dataLoggerIP A <code>String</code> containing the IP address of the Data Logger.
      * @param dataLoggerPort An <code>int</code> containing the listening port number of the Data Logger.
      * @param moduleIdentity A <code>String</code> that details the identity of the module that requires a connection to the DataLogger.
+     * @throws customexceptions.DataLoggerException
      */
     public synchronized void DataLoggerClientConnect(String dataLoggerIP, int dataLoggerPort, String moduleIdentity) throws DataLoggerException {
         
@@ -145,7 +147,7 @@ public class DataLoggerClient extends Thread {
         this.sendToDataLogger(String.format("%s%s %s%s%s", 
             Colour.GREEN.getColour(), getOK(), Colour.BLUE.getColour(), this.conn.toString(), Colour.RESET.getColour()), true, true);
         this.connectionAttempts = 0;
-        this.setConnectionStatus(ConnectionStatus.CONNECTED);
+
         return true;
         
     }
@@ -156,18 +158,22 @@ public class DataLoggerClient extends Thread {
      * @throws DataLoggerException 
      */
     private synchronized void setupStreams() throws DataLoggerException {
-        
+
         try {
-            
+
             this.output = new DataOutputStream(this.conn.getOutputStream());
             this.output.writeUTF(this.moduleIdentity);
             this.output.flush();
-            this.input = new DataInputStream(this.conn.getInputStream());
-            
+            Thread t1 = new Thread (new IncomingStream (this.conn.getInputStream(), this));
+            t1.setName("IncomingMessageThread");
+            t1.start();
+            this.setConnectionStatus(ConnectionStatus.CONNECTED);
+            LineSideModule.setLookingForDataLogger(false);
+
         } catch (IOException ex) {
-            
+
             throw new DataLoggerException ("Cannot set up INPUT and OUTPUT Streams");
-            
+
         }
 
     }
@@ -200,19 +206,6 @@ public class DataLoggerClient extends Thread {
      * 
      * @throws IOException 
      */
-    private synchronized void whileConnected() throws DataLoggerException {
-        
-        if (this.conn != null) {
-            try {
-                this.input.readUTF();
-            } catch (IOException ex) {
-                this.connectionStatus = ConnectionStatus.ATTEMPTING_CONNECTION;
-                throw new DataLoggerException ("The connection to the DataLogger has dropped");
-            }
-        
-        }
-        
-    }
     
     /**
      * This method sends a message to the DataLogger where a valid connection exists, and to the console.
@@ -234,7 +227,7 @@ public class DataLoggerClient extends Thread {
         if (this.connectionStatus == ConnectionStatus.CONNECTED && this.output != null) { 
             
             try {
-                this.output.writeUTF(String.format("%s", this.moduleIdentity, message));
+                this.output.writeUTF(String.format("%s", message));
                 this.output.flush(); 
             } catch (IOException ex) {}
 
@@ -249,38 +242,47 @@ public class DataLoggerClient extends Thread {
             
             try {
                 
-                if (this.getConnectionStatus() == ConnectionStatus.ATTEMPTING_CONNECTION && this.connectionAttempts <= MAX_CON_ATTEMPTS) {
+                switch (this.getConnectionStatus()) {
                     
-                    if (this.connectionAttempts >= 5) {
+                    case NO_CONNECTION:
+                        // Do Nothing.
+                        break;
                         
-                        this.sendToDataLogger(String.format ("%sWARNING: No further connection attempts with the Data Logger shall be made.%s",
-                            Colour.RED.getColour(), Colour.RESET.getColour()),
-                            true, true);
-                        this.setConnectionStatus(ConnectionStatus.CONNECTION_TERMINATED);
-                        this.closeConnection();
+                    case ATTEMPTING_CONNECTION:
+                        if (this.connectionAttempts < MAX_CON_ATTEMPTS) {
+                            
+                            if (this.connectToServer()) {
+                                
+                                this.connectionAttempts = 0;
+                                this.setConnectionStatus(ConnectionStatus.CONNECTION_SETUP);
+                                
+                            } else {
+                                
+                                throw new DataLoggerException("The DataLogger is not accepting connection requests");
+                                
+                            }
+                            
+                        } else {
+                            
+                            this.sendToDataLogger(String.format ("%sWARNING: No further connection attempts with the Data Logger shall be made.%s",
+                                Colour.RED.getColour(), Colour.RESET.getColour()),
+                                true, true);
+                            this.setConnectionStatus(ConnectionStatus.CONNECTION_TERMINATED);
+                            this.closeConnection();
+                            LineSideModule.setLookingForDataLogger(false);
+                            
+                        }
+                        break;
                         
-                    } else if (this.connectToServer()) {
-                        
-                        this.setConnectionStatus(this.connectionStatus = ConnectionStatus.CONNECTED);
-                        this.connectionAttempts = 0; 
-                        
-                    } else {
-                        
-                        throw new DataLoggerException("The DataLogger is not accepting connection requests");
-                        
-                    }
-                    
-                } else {
-                    
-                    if (this.getConnectionStatus() == ConnectionStatus.CONNECTED) {
-                        
+                    case CONNECTION_SETUP:
                         this.setupStreams();
-                        this.whileConnected();
+                        break;
                         
-                    }
-                    
+                    case CONNECTED:
+                        //this.whileConnected();
+                        break;
                 }
-     
+                
             } catch (DataLoggerException ex) {
                 
                 this.sendToDataLogger(String.format ("%s%s",
@@ -324,7 +326,11 @@ enum ConnectionStatus {
     /**
      * A previously successful connection has ended.
      */
-    CONNECTION_TERMINATED;
+    CONNECTION_TERMINATED,
     
+    /**
+     * This indicates that a connection has been made and the streams are being setup.
+     */
+    CONNECTION_SETUP;
 }
 
