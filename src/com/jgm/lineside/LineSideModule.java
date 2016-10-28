@@ -1,15 +1,14 @@
 package com.jgm.lineside;
 
 import com.jgm.lineside.database.MySqlConnect;
+import static com.jgm.lineside.Utilities.getFailed;
+import static com.jgm.lineside.Utilities.getOK;
 import com.jgm.lineside.traindetection.TrainDetection;
 import com.jgm.lineside.traindetection.TrainDetectionType;
 import com.jgm.lineside.datalogger.Colour;
 import com.jgm.lineside.datalogger.DataLoggerClient;
-import com.jgm.lineside.interlocking.MessageHandler;
-import com.jgm.lineside.interlocking.MessageType;
 import com.jgm.lineside.interlocking.RemoteInterlockingClient;
 import com.jgm.lineside.points.Points;
-import com.jgm.lineside.points.PointsPosition;
 import com.jgm.lineside.signals.ControlledSignal;
 import com.jgm.lineside.signals.Signal;
 import com.jgm.lineside.signals.SignalAspect;
@@ -20,209 +19,72 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 
 /**
- * This class provides the Line Side Module Functionality.
+ * This class provides LineSide Module Functionality.
+ * 
  * @author Jonathan Moss
  * @version 1.0 - August 2016
  */
 public class LineSideModule {
     
     // LineSide Module class variables.
-    private static String lsmIdentity = null; // Default module identity, a String representation
-    private static int lsmIndexKey = 9999;
+    private static String lsmIdentity; // A String representation of the Identity of this LineSide Module.
+    private static int lsmIndexKey; // The DataBase index key of this LineSide Module.
+    private static final double VERSION = 1.0; // The version number of this software.
+    private static final String VERSION_DATE = "27/10/2016"; // The version date of this software.
     
-    // Remote Interlocking classvariables.
-    private static int riIndexKey = 9999;
+    // Remote Interlocking class variables.
+    public static RemoteInterlockingClient remoteInterlocking; // The RemoteInterlocking Connection Object.
+    private static String riIdentity; // A String representation of the Identity of the Remote Interlocking.
+    private static int riIndexKey; // The DataBase index key of the Remote Interlocking.
     private static String riHost; // The IP address of the Remote Interlocking server.
     private static String riPort; // The port number of the Remote Interlocking Server.
-    private static String riIdentity;
 
-    public static String getRiIdentity() {
-        return riIdentity;
-    }
-    private static Boolean setup = true;
-    
-    // Define arrays to receive and create the points objects.
-    private static final ArrayList <Points> POINTS_ARRAY = new ArrayList <>();
-  
-    // Data-Logger Server Connection details
-    private static String dlHost; // The IP address of the Data-Logger server.
+    // DataLogger Server Connection details.
+    public static DataLoggerClient dataLogger; // The DataLogger Connection Object.
+    private static String dlHost; // The IP address of the DataLogger server.
     private static String dlPort; // The port number of the DL Server.
 
-    // DataBase Objects
-    private static ResultSet rs;
+    // LineSide Asset Arrays.
+    private static final ArrayList <Points> POINTS_ARRAY = new ArrayList <>(); // ArrayList to hold all Points Objects.
+    private static final ArrayList <Signal> SIGNAL_ARRAY = new ArrayList<>(); // ArrayList to hold all Signal Objects.
+    private static final ArrayList <TrainDetection> TRAIN_DETECTION_ARRAY = new ArrayList<>(); // ArrayList to hold all Train Detection Section Objects.
     
-    // Define arrays to receive and create the controlled signals objects.
-    private static final ArrayList <Signal> CONTROLLED_SIGNAL_ARRAY = new ArrayList<>();
+    // DataBase Objects
+    private static ResultSet rs; // The ResultSet that is populated when a SELECT query is ran.
+    
+    // Command Line Arguments
+    private static String[] commandLineArguments;
+    
+    
 
     
-    // Define arrays to receive and create the Train Detection objects.
-    private static final ArrayList <TrainDetection> TRAIN_DETECTION_ARRAY = new ArrayList<>();
     
-    // Some general declarations.
-    public static DataLoggerClient dataLogger;
-    public static RemoteInterlockingClient remoteInterlocking;
-    public static final String NEW_LINE = System.lineSeparator();
-    private static final String OPERATING_SYSTEM = System.getProperty("os.name");
- 
-    public static ArrayList getPointsArray () {
-        return POINTS_ARRAY;
-    }
     
-    public static String getLineSideModuleIdentity() {
-        return lsmIdentity;
-    }
-    
-    /**
-     * This method returns a string representing 'OK' for display on the command line.
-     * This method determines an appropriate indication based on the capabilities of the console.
-     * 
-     * @return A <code>String</code> representing 'OK' or a check mark.
-     */
-    public static String getOK() {
-        if (OPERATING_SYSTEM.contains("Windows")) {
-            return "OK";
-        } else {
-            return "[\u2713]";
-        }
-    }
-    
-     /**
-     * This method returns a string representing 'FAILED' for display on the command line.
-     * This method determines an appropriate indication based on the capabilities of the console.
-     * 
-     * @return A <code>String</code> representing 'FAILED' or a Cross.
-     */
-    public static String getFailed() {
-        if (OPERATING_SYSTEM.contains("Windows")) {
-            return "FAILED";
-        } else {
-            return "[\u2717]";
-        }
-    }
     
     public static void main(String[] args) throws IOException {
        
-        System.out.println("Line Side Module v1.0 - Running startup script...");
+        commandLineArguments = args;
+        
+        System.out.println(String.format ("LineSide Module v%s (%s) - Running startup script...", VERSION, VERSION_DATE));
         System.out.println("-------------------------------------------------\n");
         
-        // 1) Obtain Lineside Module Identity from the command line.
-        if (args.length > 0) { // Make sure at least 1 argument was passed.
-            if (args[0].length() == 5) { // We are expecting a String of 5 characters only.
-                lsmIdentity = args[0]; // Set this Lineside Module Identity.
-            } else { // Invalid Lineside Module Identity.
-                ExitCommandLine(String.format("%sERROR: Argument [1] expects a String object representing the LineSide Module Identity.%s",Colour.RED.getColour(), Colour.RED.getColour()));
-            }
-            
-        // 2) Connect to the Database and obtain a few details about the LinesideModule based on the argument passed in 1.
-            try {
-                rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM Lineside_Module WHERE identity = '%s';",lsmIdentity));
-                rs.first();
-                lsmIndexKey = (int) rs.getLong("index_key");
-                riIndexKey = (int) rs.getLong("remote_interlocking_index");
-                System.out.println(String.format ("Connected to remote DB - looking for Line Side Module details...%s%s%s", 
-                    Colour.GREEN.getColour(), getOK(), Colour.RESET.getColour()));
-            } catch (SQLException ex) {
-                System.out.println(String.format ("Connecting to remote DB - looking for Line Side Module details...%s%s%s",
-                    Colour.RED.getColour(), getFailed(), Colour.RESET.getColour()));
-                ExitCommandLine(String.format ("%sERROR: Cannot obtain LineSide Module details from the database.%s",
-                        Colour.RED.getColour(), Colour.RESET.getColour()));
-            }
-            
-        // 3) Obtain the Remote Interlocking Connection Details.
-            System.out.print("Connected to remote DB - looking for Remote Interlocking details...");
-            try {
-                rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM Remote_Interlocking WHERE index_key=%d;", riIndexKey));
-                rs.first();
-                riHost = rs.getString("ip_address");
-                riPort = rs.getString("port_number");
-                riIdentity = rs.getString("Identity");
-                System.out.print(String.format ("%s%s%s ", 
-                        Colour.GREEN.getColour(), getOK(), Colour.RESET.getColour()));
-                System.out.println(String.format("%s[%s@%s:%s]%s", 
-                        Colour.BLUE.getColour(), riIdentity, riHost, riPort, Colour.RESET.getColour()));
-            } catch (SQLException ex) {
-                System.out.println(String.format ("%s%s%s",
-                    Colour.RED.getColour(), getFailed(), Colour.RESET.getColour()));
-                ExitCommandLine( String.format ("%sERROR: Cannot obtain Remote Interlocking details from the database.%s",
-                        Colour.RED.getColour(), Colour.RESET.getColour()));
-            }
-            
-        // 4) Obtain the DataLogger Module Connection Details.
-            System.out.print("Connected to remote DB - looking for Data Logger details...");
-            try {
-                rs = MySqlConnect.getDbCon().query("SELECT * FROM Data_Logger;");
-                rs.first();
-                dlHost = rs.getString("ip_address");
-                dlPort = rs.getString("port_number");
-                System.out.print(String.format ("%s%s%s ", 
-                        Colour.GREEN.getColour(), getOK(), Colour.RESET.getColour()));
-                System.out.println(String.format("%s[%s:%s]%s",
-                        Colour.BLUE.getColour(), dlHost, dlPort, Colour.RESET.getColour()));
-            } catch (SQLException ex) {
-                System.out.println(String.format ("%s%s%s",
-                    Colour.RED.getColour(), getFailed(), Colour.RESET.getColour()));
-                ExitCommandLine(String.format ("%sERROR: Cannot obtain Data Logger details from the database.%s",
-                        Colour.RED.getColour(), Colour.RESET.getColour()));
-            }
+        Initialise.runStartUpScript();
+        
+       
+                      
 
-        // 5) Open a connection to the Data Logger.
-            try {
-                dataLogger = new DataLoggerClient(dlHost, Integer.parseInt(dlPort), lsmIdentity);
-                dataLogger.setName("DataLogger-Thread");
-                dataLogger.start();
-                Thread.sleep(2000);
-            } catch (IOException | InterruptedException ex) {}
+          
 
-        // 6) Build the Points.
-            dataLogger.sendToDataLogger("Connected to remote DB - looking for Points assigned to this Line Side Module...",true,false);
-            try {
-                rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM Points WHERE parentLinesideModule = %d;", lsmIndexKey));
-                int recordsReturned = 0;
-                while (rs.next()) {
-                    POINTS_ARRAY.add(new Points(rs.getString("Identity")));
-                    recordsReturned ++;
-                }
-                if (recordsReturned > 0) {
-                    dataLogger.sendToDataLogger(String.format ("%s%s%s",
-                        Colour.GREEN.getColour(), getOK(), Colour.RESET.getColour()),
-                        true,true);
-                    System.out.println();
-                    dataLogger.sendToDataLogger(String.format ("%s%-8s%-10s%-8s%s",
-                        Colour.BLUE.getColour(), "Points",  "Position", "Detected", Colour.RESET.getColour()),
-                        true, true);
-                    dataLogger.sendToDataLogger(String.format ("%s--------------------------%s",
-                        Colour.BLUE.getColour(), Colour.RESET.getColour()), 
-                        true, true);
-                    for (int i = 0; i < POINTS_ARRAY.size(); i++) {
-                        dataLogger.sendToDataLogger(String.format("%s%-8s%-10s%-8s%s", 
-                            Colour.BLUE.getColour(), POINTS_ARRAY.get(i).getIdentity(), POINTS_ARRAY.get(i).getPointsPosition().toString(), 
-                            (POINTS_ARRAY.get(i).getDetectionStatus()) ? Colour.GREEN.getColour() + getOK() + Colour.RESET.getColour() : getFailed(), Colour.RESET.getColour()),
-                            true, true);
-                    }
-                    System.out.println();
-                } else {
-                    dataLogger.sendToDataLogger(String.format ("%s%s%s",
-                        Colour.RED.getColour(), getFailed(), Colour.RESET.getColour()), 
-                        true, true);
-                    ExitCommandLine(String.format ("%sERROR: Cannot obtain Points details from the database.%s",
-                        Colour.RED.getColour(), Colour.RESET.getColour()));
-                }
-            } catch (SQLException ex) {
-                dataLogger.sendToDataLogger(String.format ("%s%s%s",
-                    Colour.RED.getColour(), getFailed(), Colour.RESET.getColour()), 
-                    true, true);
-                ExitCommandLine(String.format ("%sERROR: Cannot obtain Points details from the database.%s",
-                    Colour.RED.getColour(), Colour.RESET.getColour()));
-            }
+        
             
         // 7) Build the Controlled Signals.
-            dataLogger.sendToDataLogger("Connected to remote DB - looking for Controlled Signals assigned to this Line Side Module...", true, false);
+            dataLogger.sendToDataLogger("Connected to remote DB - looking for Controlled Signals assigned to this LineSide Module...", true, false);
             try {
-                rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM `Controlled_Signals` WHERE `parentLinesideModule` = %d;", lsmIndexKey));
+                rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM `Controlled_Signals` WHERE `parentLineSideModule` = %d;", lsmIndexKey));
                 int recordsReturned = 0;
                 while (rs.next()) {
                     try {
-                        CONTROLLED_SIGNAL_ARRAY.add(new ControlledSignal(rs.getString("prefix"), rs.getString("identity"), SignalType.valueOf(rs.getString("type"))));
+                        SIGNAL_ARRAY.add(new ControlledSignal(rs.getString("prefix"), rs.getString("identity"), SignalType.valueOf(rs.getString("type"))));
                         recordsReturned ++;
                     } catch (Exception ex) {
                         ex.printStackTrace();
@@ -250,10 +112,10 @@ public class LineSideModule {
                 dataLogger.sendToDataLogger(String.format ("%s----------------------------------------------------%s",
                     Colour.BLUE.getColour(), Colour.RESET.getColour()), 
                     true, true);
-                for (int i = 0; i < CONTROLLED_SIGNAL_ARRAY.size(); i++) {
+                for (int i = 0; i < SIGNAL_ARRAY.size(); i++) {
                     dataLogger.sendToDataLogger(String.format("%s%-19s%-19s%-10s%s", 
-                        Colour.BLUE.getColour(), CONTROLLED_SIGNAL_ARRAY.get(i).getFullSignalIdentity(), CONTROLLED_SIGNAL_ARRAY.get(i).getSignalType().toString(), 
-                        (CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect() == SignalAspect.RED) ? Colour.RED.getColour() + CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString() + Colour.RESET.getColour() : CONTROLLED_SIGNAL_ARRAY.get(i).getCurrentAspect().toString(), 
+                        Colour.BLUE.getColour(), SIGNAL_ARRAY.get(i).getFullSignalIdentity(), SIGNAL_ARRAY.get(i).getSignalType().toString(), 
+                        (SIGNAL_ARRAY.get(i).getCurrentAspect() == SignalAspect.RED) ? Colour.RED.getColour() + SIGNAL_ARRAY.get(i).getCurrentAspect().toString() + Colour.RESET.getColour() : SIGNAL_ARRAY.get(i).getCurrentAspect().toString(), 
                         Colour.RESET.getColour()), 
                         true, true);
                 }
@@ -267,9 +129,9 @@ public class LineSideModule {
             }
             
         // 8) Build the non-controlled signals.
-            dataLogger.sendToDataLogger("Connected to remote DB - looking for non-controlled Signals assigned to this Line Side Module...", true, false);
+            dataLogger.sendToDataLogger("Connected to remote DB - looking for non-controlled Signals assigned to this LineSide Module...", true, false);
             try {
-                rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM Non_Controlled_Signals WHERE parentLinesideModule = %d;", lsmIndexKey));
+                rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM Non_Controlled_Signals WHERE parentLineSideModule = %d;", lsmIndexKey));
                 int recordsReturned = 0;
                 while (rs.next()) {
                     try {
@@ -320,9 +182,9 @@ public class LineSideModule {
             }
             
         // 9) Build the Train Detection Sections.
-            dataLogger.sendToDataLogger("Connected to remote DB - looking for Train Detection Sections assigned to this Line Side Module...", true, false);
+            dataLogger.sendToDataLogger("Connected to remote DB - looking for Train Detection Sections assigned to this LineSide Module...", true, false);
             try {
-                rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM Train_Detection WHERE parentLinesideModule = %d;", lsmIndexKey));
+                rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM Train_Detection WHERE parentLineSideModule = %d;", lsmIndexKey));
                 int recordsReturned = 0;
                 while (rs.next()) {
                     try {
@@ -380,20 +242,14 @@ public class LineSideModule {
 
             }
             
-            while (setup) {
-                
-            }
+  
             
             //System.out.println();
             
         // 11) Wait for State Changes or Messages From the Remote Intelocking.
         //TODO
 
-       } else {
-           
-           ExitCommandLine("ERROR: Incorrect number of command line arguments.");
-           
-       }
+     
   
     }
     
@@ -405,7 +261,7 @@ public class LineSideModule {
     public static void ExitCommandLine(String message) {
         
         String msg;
-        msg = String.format("Line Side Module cannot continue [%s]", message);
+        msg = String.format("LineSide Module cannot continue [%s]", message);
         if (dataLogger != null) {
             dataLogger.sendToDataLogger(message, Boolean.FALSE, Boolean.TRUE);
         }
@@ -468,8 +324,8 @@ public class LineSideModule {
         }
 
         // Controlled Signals
-        for (int i = 0; i < CONTROLLED_SIGNAL_ARRAY.size(); i++) {
-            sendUpdateControlledSignal(CONTROLLED_SIGNAL_ARRAY.get(i));
+        for (int i = 0; i < SIGNAL_ARRAY.size(); i++) {
+            sendUpdateControlledSignal(SIGNAL_ARRAY.get(i));
         }
 
         // Automatic Signals
@@ -511,7 +367,7 @@ public class LineSideModule {
      */
     public static synchronized void incomingControlledSignalRequest (String prefix, String identity, SignalAspect requestedAspect) {
     
-        CONTROLLED_SIGNAL_ARRAY.get(ControlledSignal.returnControlledSignalIndex(String.format ("%s%s", 
+        SIGNAL_ARRAY.get(ControlledSignal.returnControlledSignalIndex(String.format ("%s%s", 
             prefix, identity))).requestSignalAspect(requestedAspect);
         
     }
@@ -526,5 +382,196 @@ public class LineSideModule {
         
     }
     
+    public static String getRiIdentity() {
+        return riIdentity;
+    }
+
     
+    
+  
+   
+
+    
+    
+    
+
+    
+ 
+    /**
+     * This method returns a reference to the ArrayList that holds the 
+     * @return 
+     */
+    public static ArrayList getPointsArray () {
+        return POINTS_ARRAY;
+    }
+    
+    public static String getLineSideModuleIdentity() {
+        return lsmIdentity;
+    }
+    
+    /**
+     * This method obtains the LineSide Module Identity from the Command Line Arguments, and validates it against the DataBase.
+     * 
+     * This method requires that the command line arguments have been passed to the correct String array prior to calling this method.
+     */
+    protected static void validateCommandLineArguments() {
+    
+        if (commandLineArguments.length > 0) { // Make sure at least 1 argument was passed.
+            
+            if (commandLineArguments[0].length() == 5) { // We are expecting a String of 5 characters only.
+                
+                lsmIdentity = commandLineArguments[0]; // Set this LineSide Module Identity.
+                
+            } else { 
+                
+                ExitCommandLine(String.format("%sERROR: Argument [1] expects a String object representing the LineSide Module Identity.%s",Colour.RED.getColour(), Colour.RED.getColour()));
+        
+            }
+            
+            try {
+                
+                rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM `LineSide_Module` WHERE `identity` = '%s';",lsmIdentity));
+                rs.first();
+                lsmIndexKey = (int) rs.getLong("index_key");
+                riIndexKey = (int) rs.getLong("remote_interlocking_index");
+                System.out.println(String.format ("Connected to remote DB - looking for LineSide Module details...%s%s%s", 
+                    Colour.GREEN.getColour(), Utilities.getOK(), Colour.RESET.getColour()));
+                
+            } catch (SQLException ex) {
+                
+                System.out.println(String.format ("Connecting to remote DB - looking for LineSide Module details...%s%s%s",
+                    Colour.RED.getColour(), Utilities.getFailed(), Colour.RESET.getColour()));
+                ExitCommandLine(String.format ("%sERROR: Cannot obtain LineSide Module details from the database.%s",
+                        Colour.RED.getColour(), Colour.RESET.getColour()));
+                
+            }
+        } 
+    }
+    
+    /**
+     * This Method obtains the Remote Interlocking Details from the Remote DataBase.
+     * 
+     * This method requires that a LineSide Module identity has been established and validated before being called.
+     */
+    protected static void obtainRemoteInterlockingDetails() {
+    
+        System.out.print("Connected to remote DB - looking for Remote Interlocking details...");
+        try {
+            
+            rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM Remote_Interlocking WHERE index_key=%d;", riIndexKey));
+            rs.first();
+            riHost = rs.getString("ip_address");
+            riPort = rs.getString("port_number");
+            riIdentity = rs.getString("Identity");
+            System.out.print(String.format ("%s%s%s ", 
+                Colour.GREEN.getColour(), getOK(), Colour.RESET.getColour()));
+            System.out.println(String.format("%s[%s@%s:%s]%s", 
+                Colour.BLUE.getColour(), riIdentity, riHost, riPort, Colour.RESET.getColour()));
+           
+        } catch (SQLException ex) {
+            
+            System.out.println(String.format ("%s%s%s",
+                Colour.RED.getColour(), getFailed(), Colour.RESET.getColour()));
+            ExitCommandLine( String.format ("%sERROR: Cannot obtain Remote Interlocking details from the database.%s",
+                Colour.RED.getColour(), Colour.RESET.getColour()));
+            
+        }
+    }
+    
+    /**
+     * This method obtains the DataLogger details from the remote DB.
+     */
+    protected static void obtainDataLoggerConnectionDetails() {
+    
+        System.out.print("Connected to remote DB - looking for DataLogger details...");
+        try {
+            
+            rs = MySqlConnect.getDbCon().query("SELECT * FROM `Data_Logger`;");
+            rs.first();
+            dlHost = rs.getString("ip_address");
+            dlPort = rs.getString("port_number");
+            System.out.print(String.format ("%s%s%s ", 
+                Colour.GREEN.getColour(), getOK(), Colour.RESET.getColour()));
+            System.out.println(String.format("%s[%s:%s]%s",
+                Colour.BLUE.getColour(), dlHost, dlPort, Colour.RESET.getColour()));
+            
+        } catch (SQLException ex) {
+            
+            System.out.println(String.format ("%s%s%s",
+                Colour.RED.getColour(), getFailed(), Colour.RESET.getColour()));
+            ExitCommandLine(String.format ("%sERROR: Cannot obtain DataLogger details from the database.%s",
+                Colour.RED.getColour(), Colour.RESET.getColour()));
+            
+        }
+    }
+    
+    /**
+     * This method attempts a connection to the DataLogger.
+     * 
+     * This method requires that the DataLogger connection details have been obtained from the remote DB before calling this method.
+     * This method also requires that the LineSide Module identity has been validated against the remote DB.
+     */
+    protected static void attemptDataLoggerConnection() {
+    
+        try {
+            
+            dataLogger = new DataLoggerClient(dlHost, Integer.parseInt(dlPort), lsmIdentity);
+            dataLogger.setName("DataLogger-Thread");
+            dataLogger.start();
+            Thread.sleep(2000);
+            
+        } catch (IOException | InterruptedException ex) {}
+        
+    }
+    
+    /**
+     * This method builds the Points Objects.
+     * 
+     * This method also requires that the LineSide Module identity has been validated against the remote DB.
+     */
+    protected static void buildPoints() {
+    
+        dataLogger.sendToDataLogger("Connected to remote DB - looking for Points assigned to this LineSide Module...",true,false);
+        try {
+            
+            rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM `Points` WHERE `parentLineSideModule` = %d;", lsmIndexKey));
+            int recordsReturned = 0;
+            
+            while (rs.next()) {
+                POINTS_ARRAY.add(new Points(rs.getString("Identity")));
+                recordsReturned ++;
+            }
+            if (recordsReturned > 0) {
+                dataLogger.sendToDataLogger(String.format ("%s%s%s",
+                    Colour.GREEN.getColour(), getOK(), Colour.RESET.getColour()),
+                    true,true);
+                System.out.println();
+                dataLogger.sendToDataLogger(String.format ("%s%-8s%-10s%-8s%s",
+                    Colour.BLUE.getColour(), "Points",  "Position", "Detected", Colour.RESET.getColour()),
+                    true, true);
+                dataLogger.sendToDataLogger(String.format ("%s--------------------------%s",
+                    Colour.BLUE.getColour(), Colour.RESET.getColour()), 
+                    true, true);
+                for (int i = 0; i < POINTS_ARRAY.size(); i++) {
+                    dataLogger.sendToDataLogger(String.format("%s%-8s%-10s%-8s%s", 
+                        Colour.BLUE.getColour(), POINTS_ARRAY.get(i).getIdentity(), POINTS_ARRAY.get(i).getPointsPosition().toString(), 
+                        (POINTS_ARRAY.get(i).getDetectionStatus()) ? Colour.GREEN.getColour() + getOK() + Colour.RESET.getColour() : getFailed(), Colour.RESET.getColour()),
+                        true, true);
+                }
+                System.out.println();
+            } else {
+                dataLogger.sendToDataLogger(String.format ("%s%s%s",
+                    Colour.RED.getColour(), getFailed(), Colour.RESET.getColour()), 
+                    true, true);
+                ExitCommandLine(String.format ("%sERROR: Cannot obtain Points details from the database.%s",
+                    Colour.RED.getColour(), Colour.RESET.getColour()));
+            }
+        } catch (SQLException ex) {
+            dataLogger.sendToDataLogger(String.format ("%s%s%s",
+                Colour.RED.getColour(), getFailed(), Colour.RESET.getColour()), 
+                true, true);
+            ExitCommandLine(String.format ("%sERROR: Cannot obtain Points details from the database.%s",
+                Colour.RED.getColour(), Colour.RESET.getColour()));
+        }
+    }
 }
