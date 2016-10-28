@@ -1,11 +1,11 @@
 package com.jgm.lineside;
 
 /**
- * This Class contains various Utilities and Helper methods used in the LineSide Module.
+ * This Class contains various ApplicationUtilities and Helper methods used in the LineSide Module.
  * @author Jonathan Moss
  * @version v1.0 October 2016
  */
-public class Utilities {
+public class ApplicationUtilities {
 
     private static final String NEW_LINE = System.lineSeparator(); // The OS Specific Line Separator.
     private static final String OPERATING_SYSTEM = System.getProperty("os.name"); // A String containing the Operating System designation.
@@ -22,7 +22,7 @@ public class Utilities {
      * This method returns a String representing the OS Specific 'Line Separator' character.
      * @return <code>String</code> Containing the OS Specific Line Separator character(s).
      */
-    private String getNewLine() {
+    public static String getNewLine() {
         return NEW_LINE;
     }
     

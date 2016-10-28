@@ -1,7 +1,6 @@
 
 package com.jgm.lineside.interlocking;
 
-import static com.jgm.lineside.LineSideModule.ExitCommandLine;
 import static com.jgm.lineside.LineSideModule.dataLogger;
 import static com.jgm.lineside.LineSideModule.getFailed;
 import static com.jgm.lineside.LineSideModule.getOK;
@@ -12,6 +11,7 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
+import static com.jgm.lineside.LineSideModule.exitCommandLine;
 
 
 /**

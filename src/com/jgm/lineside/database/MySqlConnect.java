@@ -1,6 +1,10 @@
 package com.jgm.lineside.database;
 
+import com.jgm.lineside.ApplicationUtilities;
 import com.jgm.lineside.LineSideModule;
+import static com.jgm.lineside.ApplicationUtilities.getFailed;
+import static com.jgm.lineside.ApplicationUtilities.getNewLine;
+import static com.jgm.lineside.ApplicationUtilities.getOK;
 import com.jgm.lineside.datalogger.Colour;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -75,15 +79,13 @@ public final class MySqlConnect {
         }
         conString = String.format("jdbc:mysql://%s:%s/%s", dbHost, dbPort, dbName); // The db connection String.
         if (this.conn == null) {
-            System.out.print("Attempting to establish a connection with the remote DB...");
+            
             try {
                 Class.forName("com.mysql.jdbc.Driver").newInstance();
                 this.conn = (Connection)DriverManager.getConnection(conString, dbUserName, dbPassword);
-                System.out.println(String.format ("%s%s%s", 
-                    Colour.GREEN.getColour(), LineSideModule.getOK(), Colour.RESET.getColour()));
+                
             } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException sqle) {
-                System.out.println(String.format ("%s%s [Connection Error]%s", 
-                        Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour()));
+                
                 System.exit(0);
             }
         }
@@ -93,7 +95,7 @@ public final class MySqlConnect {
      * This Method reads the DataBase connection details and credentials from dbAccess.txt
      */
     private synchronized static void getDatabaseCredentials() {
-        System.out.print("Attempting to get Database Credentials from dbAccess.txt...");
+        
         try {
             // Setup the input stream.
             InputStream dbSetup  = LineSideModule.class.getResourceAsStream("dbAccess.txt");
@@ -117,19 +119,14 @@ public final class MySqlConnect {
                 dbName = DB_CONNECTION_CREDENTIALS.get(2);
                 dbUserName = DB_CONNECTION_CREDENTIALS.get(3);
                 dbPassword = DB_CONNECTION_CREDENTIALS.get(4);
-                System.out.println(String.format ("%s%s%s", 
-                    Colour.GREEN.getColour(), LineSideModule.getOK(), Colour.RESET.getColour()));
+            
             } else {
                 // Alert the user - close the programme (no point continuing).
-                System.out.println(String.format ("%s%s%s - %sdbAccess.txt contains invalid database credentials.%s%s",
-                    Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour(), Colour.BLUE.getColour(), Colour.RESET.getColour(), LineSideModule.NEW_LINE));
-                System.exit(0);
+
             }
         } catch (NullPointerException | IOException e) {
             // Alert the user - close the programme (no point continuing).
-            System.out.println(String.format ("%s%s%s - %sCannot read from dbAccess.txt%s%s", 
-                Colour.RED.getColour(), LineSideModule.getFailed(), Colour.RESET.getColour(), Colour.BLUE.getColour(), Colour.RESET.getColour(), LineSideModule.NEW_LINE));
-            System.exit(0);
+
         }
     }
 }

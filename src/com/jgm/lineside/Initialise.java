@@ -14,13 +14,13 @@ import static com.jgm.lineside.LineSideModule.validateCommandLineArguments;
  */
 public abstract class Initialise {
 
-    public static void runStartUpScript() {
+    public static void runStartUpScript() throws Exception{
         
         validateCommandLineArguments();
-        obtainRemoteInterlockingDetails();
+        //obtainRemoteInterlockingDetails();
         obtainDataLoggerConnectionDetails();
         attemptDataLoggerConnection();
-        buildPoints();
+        //buildPoints();
     
     }
     
