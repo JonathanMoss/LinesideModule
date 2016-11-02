@@ -8,6 +8,7 @@ import static com.jgm.lineside.LineSideModule.buildPoints;
 import static com.jgm.lineside.LineSideModule.buildTrainDetectionSections;
 import static com.jgm.lineside.LineSideModule.obtainDataLoggerConnectionDetails;
 import static com.jgm.lineside.LineSideModule.obtainRemoteInterlockingDetails;
+import static com.jgm.lineside.LineSideModule.sendUpdateAll;
 import static com.jgm.lineside.LineSideModule.validateCommandLineArguments;
 
 /**
@@ -34,6 +35,10 @@ public abstract class Initialise {
         
         obtainRemoteInterlockingDetails();
         attemptRemoteInterlockingConnection();
+        
+        while (LineSideModule.getLookingForRemoteInterlocking()) {}
+        
+        sendUpdateAll();
     
     }
     

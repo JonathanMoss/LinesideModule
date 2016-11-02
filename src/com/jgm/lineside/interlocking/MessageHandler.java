@@ -6,7 +6,7 @@ import com.jgm.lineside.signals.MovementAuthorityClass;
 import com.jgm.lineside.signals.SignalAspect;
 import java.io.IOException;
 import java.net.Socket;
-import java.util.ArrayList;
+import java.util.LinkedList;
 
 /**
  * This Class provides static methods to handle and process incoming and outgoing messages.
@@ -16,8 +16,8 @@ import java.util.ArrayList;
 public abstract class MessageHandler {
     
     private static final String MESSAGE_END = "MESSAGE_END"; // Constant that MUST be the last portion of all messages!
-    private static final ArrayList <Message> OUTGOING_STACK = new ArrayList<>(); // An ArrayList that contains all outgoing messages.
-    private static final ArrayList <Message> INCOMING_STACK = new ArrayList<>(); // An ArrayList that contains all incoming messages.
+    private static final LinkedList <Message> OUTGOING_STACK = new LinkedList<>(); // An ArrayList that contains all outgoing messages.
+    private static final LinkedList <Message> INCOMING_STACK = new LinkedList<>(); // An ArrayList that contains all incoming messages.
     private static OutgoingMessage outgoing = null; // The OutgoingMessage object used to send messages to the Remote Interlocking.
     private static IncomingMessage incoming = null; // The IncomingMessage object where messages received from the Remote Interlocking are received.
     private static Socket connectionToRemoteInterlocking = null; // The Socket (Connection) to the Remote Interlocking.
@@ -54,10 +54,11 @@ public abstract class MessageHandler {
     /**
      * This method processes each message contained within the incoming message stack.
      */
-    protected static synchronized void processIncomingMessages() {
+    public static synchronized void processIncomingMessages() {
     
         while (!INCOMING_STACK.isEmpty()) { // Proceed if there are messages in the Incoming Message Stack (Queue)
             switch (INCOMING_STACK.get(0).getMsgType()) { // Get the type of message.
+                
                 case ACK:
                     /*
                      * Remove the corresponding message from the OUTGOING_MESSAGE_STACK.
@@ -66,11 +67,10 @@ public abstract class MessageHandler {
                      */
                     removeAcknowledgedMessage(Integer.parseInt(INCOMING_STACK.get(0).getMsgBody()));
                     break;
-                case SETUP:
-                    LineSideModule.sendUpdateAll();
-                    break;
+
                 case STATE_CHANGE:
                     break;
+                
                 case REQUEST:
                    /*
                     *   Examples:
@@ -86,19 +86,19 @@ public abstract class MessageHandler {
                             break;
                         case "CONTROLLED_SIGNAL":
                             LineSideModule.incomingControlledSignalRequest( splitMessage[1], 
-                                                splitMessage[2], 
-                                                splitMessage[3], 
-                                                splitMessage[4], 
-                                                MovementAuthorityClass.valueOf(splitMessage[5]),
-                                                SignalAspect.valueOf(splitMessage[6]));
+                                                                            splitMessage[2], 
+                                                                            splitMessage[3], 
+                                                                            splitMessage[4], 
+                                                                            MovementAuthorityClass.valueOf(splitMessage[5]),
+                                                                            SignalAspect.valueOf(splitMessage[6]));
                             break;
                         case "AUTOMATIC_SIGNAL":
                             LineSideModule.incomingControlledSignalRequest( splitMessage[1], 
-                                                splitMessage[2], 
-                                                splitMessage[3], 
-                                                splitMessage[4], 
-                                                MovementAuthorityClass.valueOf(splitMessage[5]),
-                                                SignalAspect.valueOf(splitMessage[6]));
+                                                                            splitMessage[2], 
+                                                                            splitMessage[3], 
+                                                                            splitMessage[4], 
+                                                                            MovementAuthorityClass.valueOf(splitMessage[5]),
+                                                                            SignalAspect.valueOf(splitMessage[6]));
                             break;
                                     
                     }
@@ -115,17 +115,15 @@ public abstract class MessageHandler {
     /**
      * This method processes each message contained within the outgoing message stack.
      */
-    protected static synchronized void processOutgoingMessages() {
+    public static synchronized void processOutgoingMessages() {
     
         while (!OUTGOING_STACK.isEmpty()) {
-            switch (OUTGOING_STACK.get(0).getMsgType()) { // Get the type of message.
-                case ACK:
-                    // Send Message
-                    sendMessage (OUTGOING_STACK.get(0));
-                    // Remove from OUTGOING_STACK
-                    OUTGOING_STACK.remove(0);
-                    break;
-            }
+            
+            // Send Message
+            sendMessage (OUTGOING_STACK.get(0));
+            // Remove from OUTGOING_STACK
+            OUTGOING_STACK.remove(0);
+                 
         }
     }
     

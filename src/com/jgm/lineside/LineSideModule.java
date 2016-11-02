@@ -59,13 +59,13 @@ import com.jgm.lineside.signals.RepeaterSignal;
 import com.jgm.lineside.signals.Signal;
 import com.jgm.lineside.signals.SignalAspect;
 import com.jgm.lineside.signals.SignalType;
-import com.jgm.customexceptions.AutomaticSignalException;
-import com.jgm.customexceptions.ControlledSignalException;
-import com.jgm.customexceptions.DataLoggerException;
-import com.jgm.customexceptions.CommandLineException;
-import com.jgm.customexceptions.PointException;
-import com.jgm.customexceptions.RemoteInterlockingException;
-import com.jgm.customexceptions.TrainDetectionException;
+import com.jgm.lineside.customexceptions.AutomaticSignalException;
+import com.jgm.lineside.customexceptions.ControlledSignalException;
+import com.jgm.lineside.customexceptions.DataLoggerException;
+import com.jgm.lineside.customexceptions.CommandLineException;
+import com.jgm.lineside.customexceptions.PointException;
+import com.jgm.lineside.customexceptions.RemoteInterlockingException;
+import com.jgm.lineside.customexceptions.TrainDetectionException;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -82,23 +82,12 @@ public class LineSideModule {
     /**
      * This is a flag to indicate if there is a connection to the DataLogger, or not.
      */
-    public volatile static Boolean lookingForDataLogger = true;
+    private volatile static Boolean lookingForDataLogger = true;
     
     /**
-     * This method returns the lookingForDataLogger value.
-     * @return <code>Boolean</code> <i>'true'</i> indicates there is a connection to the DataLogger, otherwise <i>'false'</i>
+     * This is a flag to indicate if there is a connection to the RemoteInterlocking, or not.
      */
-    public static synchronized Boolean getLookingForDataLogger() {
-        return lookingForDataLogger;
-    }
-    
-    /**
-     * This method sets the lookingForDataLogger value.
-     * @param dataLoggerCon <code>Boolean</code> <i>'true'</i> indicates there is a connection to the DataLogger, otherwise <i>'false'</i>
-     */
-    public static synchronized void setLookingForDataLogger(Boolean dataLoggerCon) {
-        lookingForDataLogger = dataLoggerCon;
-    } 
+    private volatile static Boolean lookingForRemoteInterlocking = true;
     
     /**
      * The permitted length of the LineSideModule Identity.
@@ -540,7 +529,7 @@ public class LineSideModule {
      * This method obtains the LineSide Module Identity from the Command Line Arguments, and validates it against the DataBase.
      * 
      * This method requires that the command line arguments have been passed to the correct String array prior to calling this method.
-     * @throws com.jgm.customexceptions.CommandLineException
+     * @throws com.jgm.lineside.customexceptions.CommandLineException
      */
     protected static void validateCommandLineArguments() throws CommandLineException{
     
@@ -587,7 +576,7 @@ public class LineSideModule {
      * This Method obtains the Remote Interlocking Details from the Remote DataBase.
      * 
      * This method requires that a LineSide Module identity has been established and validated before being called.
-     * @throws com.jgm.customexceptions.RemoteInterlockingException
+     * @throws com.jgm.lineside.customexceptions.RemoteInterlockingException
      */
     protected static void obtainRemoteInterlockingDetails() throws RemoteInterlockingException {
     
@@ -616,7 +605,7 @@ public class LineSideModule {
     
     /**
      * This method obtains the DataLogger details from the remote DB.
-     * @throws com.jgm.customexceptions.DataLoggerException
+     * @throws com.jgm.lineside.customexceptions.DataLoggerException
      */
     protected static void obtainDataLoggerConnectionDetails() throws DataLoggerException {
     
@@ -645,7 +634,7 @@ public class LineSideModule {
      * 
      * This method requires that the DataLogger connection details have been obtained from the remote DB before calling this method.
      * This method also requires that the LineSide Module identity has been validated against the remote DB.
-     * @throws com.jgm.customexceptions.DataLoggerException
+     * @throws com.jgm.lineside.customexceptions.DataLoggerException
      */
     protected static void attemptDataLoggerConnection() throws DataLoggerException {
         
@@ -657,7 +646,7 @@ public class LineSideModule {
      * This method builds the Points Objects.
      * 
      * This method also requires that the LineSide Module identity has been validated against the remote DB.
-     * @throws com.jgm.customexceptions.PointException
+     * @throws com.jgm.lineside.customexceptions.PointException
      */
     protected static void buildPoints() throws PointException {
     
@@ -842,5 +831,64 @@ public class LineSideModule {
         remoteInterlocking.setName("RemoteInterlockingClient-Thread");
         remoteInterlocking.start();
         
+        // Initiate and run the processOutgoingMessages method as a Thread
+        Thread processOutgoingMessages = new Thread (() -> {
+            while (true) {
+                try {
+                    Thread.sleep(500);
+                    MessageHandler.processOutgoingMessages();
+                } catch (InterruptedException ex) {
+                    
+                }
+            }
+        });
+        processOutgoingMessages.setName("ProcessOutgoingMessagesStack-Thread");
+        processOutgoingMessages.start();
+        
+        // Initiate and run the processIncomingMessages method as a Thread
+        Thread processIncomingMessages = new Thread (() -> {
+            while (true) {
+                try {
+                    Thread.sleep(500);
+                    MessageHandler.processIncomingMessages();
+                } catch (InterruptedException ex) {
+                    
+                }
+            }
+        });
+        processIncomingMessages.setName("ProcessIncomingMessagesStack-Thread");
+        processIncomingMessages.start();
+        
     }
+    
+    /**
+     * This method returns the lookingForRemoteInterlocking value.
+     * @return <code>Boolean</code> <i>'true'</i> indicates there is a connection to the RemoteInterlocking, otherwise <i>'false'</i>
+     */
+    public static synchronized Boolean getLookingForRemoteInterlocking() {
+        return lookingForRemoteInterlocking;
+    }
+    
+    /**
+     * This method sets the lookingForRemoteInterlocking value.
+     * @param remoteInterlockingCon <code>Boolean</code> <i>'true'</i> indicates there is a connection to the RemoteInterlocking, otherwise <i>'false'</i>
+     */
+    public static synchronized void setLookingForRemoteInterlocking(Boolean remoteInterlockingCon) {
+        lookingForRemoteInterlocking = remoteInterlockingCon;
+    }
+    /**
+     * This method returns the lookingForDataLogger value.
+     * @return <code>Boolean</code> <i>'true'</i> indicates there is a connection to the DataLogger, otherwise <i>'false'</i>
+     */
+    public static synchronized Boolean getLookingForDataLogger() {
+        return lookingForDataLogger;
+    }
+    
+    /**
+     * This method sets the lookingForDataLogger value.
+     * @param dataLoggerCon <code>Boolean</code> <i>'true'</i> indicates there is a connection to the DataLogger, otherwise <i>'false'</i>
+     */
+    public static synchronized void setLookingForDataLogger(Boolean dataLoggerCon) {
+        lookingForDataLogger = dataLoggerCon;
+    } 
 }

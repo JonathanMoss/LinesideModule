@@ -2,6 +2,7 @@ package com.jgm.lineside.interlocking;
 
 import static com.jgm.lineside.ApplicationUtilities.getFailed;
 import static com.jgm.lineside.ApplicationUtilities.getOK;
+import com.jgm.lineside.LineSideModule;
 import static com.jgm.lineside.LineSideModule.dataLogger;
 import static com.jgm.lineside.LineSideModule.exitCommandLine;
 import com.jgm.lineside.datalogger.Colour;
@@ -73,6 +74,7 @@ public class RemoteInterlockingClient extends Thread {
             dataLogger.sendToDataLogger(String.format ("%s%s%s",
                 Colour.GREEN.getColour(), getOK(), Colour.RESET.getColour()), 
                 true, true);
+            LineSideModule.setLookingForRemoteInterlocking(false);
         } catch (IOException ex) {
             dataLogger.sendToDataLogger (String.format ("%s%s%s",
                     Colour.RED.getColour(), getFailed(), Colour.RESET.getColour()),

@@ -1,4 +1,4 @@
-package com.jgm.customexceptions;
+package com.jgm.lineside.customexceptions;
 /**
  * The class PointException is a form of Exception that indicates conditions that a reasonable application might want to catch.
  * <p>

@@ -21,9 +21,15 @@ public class IncomingMessage extends DataInputStream implements Runnable {
      */
     public IncomingMessage(InputStream in) {
         super(in);
-        MessageHandler.setIncoming(this); // Register this object in the MessageHandler class.
+        this.setMessageHandlerReference();
     }
 
+    /**
+     * This method informs the MessageHandler class that this object is being used to receive incoming messages.
+     */
+    private void setMessageHandlerReference() {
+        MessageHandler.setIncoming(this); // Register this object in the MessageHandler class.
+    }
     /**
      * This method is automatically called when the IncomingMessage object receives a call to .start(); 
      */

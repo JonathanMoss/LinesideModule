@@ -9,7 +9,7 @@ import java.io.OutputStream;
  * @author Jonathan Moss
  * @version v1.0 October 2016
  */
-public class OutgoingMessage extends DataOutputStream implements Runnable{
+public final class OutgoingMessage extends DataOutputStream implements Runnable{
 
      private Boolean stayConnected = true; // The connection flag; whilst true, the Thread keeps running.
     
@@ -19,6 +19,14 @@ public class OutgoingMessage extends DataOutputStream implements Runnable{
      */
     public OutgoingMessage(OutputStream out) {
         super(out);
+        this.setMessageHandlerReference();
+    }
+    
+    /**
+     * This method informs the MessageHandler class that this object is being used to send outgoing messages.
+     */
+    public void setMessageHandlerReference() {
+        MessageHandler.setOutgoing(this);
     }
 
     @Override
