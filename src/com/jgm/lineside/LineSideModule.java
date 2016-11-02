@@ -488,7 +488,7 @@ public class LineSideModule {
             
             for (int i = 0; i < ALL_SIGNALS_ARRAY.size(); i++) {
                 
-                if (ALL_SIGNALS_ARRAY.get(i) instanceof AutomaticSignal) {
+                if (ALL_SIGNALS_ARRAY.get(i) instanceof AutomaticSignal || ALL_SIGNALS_ARRAY.get(i) instanceof RepeaterSignal) {
                     
                     String aspectColour = "";
                     
@@ -504,6 +504,7 @@ public class LineSideModule {
                             break;
                             
                         case GREEN:
+                        case CLEAR:
                             aspectColour = Colour.GREEN.getColour();
                             break;
                     }
