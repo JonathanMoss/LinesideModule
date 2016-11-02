@@ -2,6 +2,8 @@ package com.jgm.lineside.interlocking;
 
 import com.jgm.lineside.LineSideModule;
 import com.jgm.lineside.points.PointsPosition;
+import com.jgm.lineside.signals.MovementAuthorityClass;
+import com.jgm.lineside.signals.SignalAspect;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -73,18 +75,30 @@ public abstract class MessageHandler {
                    /*
                     *   Examples:
                     *   POINTS.994.REVERSE
-                    *   SIGNAL.CE.110.SINGLE_YELLOW
+                    *   SIGNAL.CE.110.CE.112.MAIN.NULL
+                    *   SIGNAL.CE.110.CE.112.MAIN.YELLOW
                     */
                     String[] splitMessage = INCOMING_STACK.get(0).getMsgBody().split("\\.");
                     switch (splitMessage[0]) {
                         case "POINTS":
-                            LineSideModule.incomingPointsRequest(splitMessage[1], PointsPosition.valueOf(splitMessage[2]));
+                            LineSideModule.incomingPointsRequest(   splitMessage[1], 
+                                                                    PointsPosition.valueOf(splitMessage[2]));
                             break;
                         case "CONTROLLED_SIGNAL":
-                            //LineSideModule.incomingControlledSignalRequest(splitMessage[1], splitMessage[2], Aspects.valueOf(splitMessage[3]));
+                            LineSideModule.incomingControlledSignalRequest( splitMessage[1], 
+                                                splitMessage[2], 
+                                                splitMessage[3], 
+                                                splitMessage[4], 
+                                                MovementAuthorityClass.valueOf(splitMessage[5]),
+                                                SignalAspect.valueOf(splitMessage[6]));
                             break;
                         case "AUTOMATIC_SIGNAL":
-                            //LineSideModule.incomingAutomaticSignalRequest(splitMessage[1], splitMessage[2], Aspects.valueOf(splitMessage[3]));
+                            LineSideModule.incomingControlledSignalRequest( splitMessage[1], 
+                                                splitMessage[2], 
+                                                splitMessage[3], 
+                                                splitMessage[4], 
+                                                MovementAuthorityClass.valueOf(splitMessage[5]),
+                                                SignalAspect.valueOf(splitMessage[6]));
                             break;
                                     
                     }

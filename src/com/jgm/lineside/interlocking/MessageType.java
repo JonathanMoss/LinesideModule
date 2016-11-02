@@ -1,6 +1,6 @@
 package com.jgm.lineside.interlocking;
 /**
- * This Enum defines the types of inter-module communications.
+ * This Enumeration defines the types of inter-module communications.
  * 
  * ACK: Acknowledge previous message, the last part of the message must include the hashCode.
  * SETUP: Used during initial hand-shaking to setup up the assets between the LSM and RI.

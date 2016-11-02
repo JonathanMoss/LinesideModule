@@ -1,7 +1,7 @@
 package com.jgm.lineside.datalogger;
 
 /**
- * This enum provides the ANSI Colour Codes, used to present colour output in the console.
+ * This Enumeration provides the ANSI Colour Codes as constants, used to present colour output in the console.
  * @author Jonathan Moss
  */
 public enum Colour {

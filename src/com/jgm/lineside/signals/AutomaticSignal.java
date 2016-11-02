@@ -28,14 +28,14 @@ public class AutomaticSignal extends Signal {
     /**
      * This method Simulates an Automatic Signal Being Replaced to Danger.
      */
-    public void replaceToDanger() {
+    public void setToMostRestrictiveAspect() {
         super.setDisplayHighestAspect(false);
     }
     
     /**
      * This method simulates the ability to restore an automatic signal to automatic working following being replaced to danger.
      */
-    public void restoreReplacement() {
+    public void setToLeastRestrictiveAspect() {
         super.setDisplayHighestAspect(true);
     }
 

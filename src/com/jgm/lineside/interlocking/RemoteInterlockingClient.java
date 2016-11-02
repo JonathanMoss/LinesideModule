@@ -1,9 +1,9 @@
-
 package com.jgm.lineside.interlocking;
 
+import static com.jgm.lineside.ApplicationUtilities.getFailed;
+import static com.jgm.lineside.ApplicationUtilities.getOK;
 import static com.jgm.lineside.LineSideModule.dataLogger;
-import static com.jgm.lineside.LineSideModule.getFailed;
-import static com.jgm.lineside.LineSideModule.getOK;
+import static com.jgm.lineside.LineSideModule.exitCommandLine;
 import com.jgm.lineside.datalogger.Colour;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -11,8 +11,6 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
-import static com.jgm.lineside.LineSideModule.exitCommandLine;
-
 
 /**
  * This class provides the functionality to connect to the Remote Interlocking Server.
@@ -21,10 +19,25 @@ import static com.jgm.lineside.LineSideModule.exitCommandLine;
  */
 public class RemoteInterlockingClient extends Thread {
     
+    /**
+     * The IP Address of the Remote Interlocking Module.
+     */
     private String remoteInterlockingIP;
+    
+    /**
+     * The Port Number that the Remote Interlocking Module is listening for connection requests on.
+     */
     private int remoteInterlockingPort;
+    
+    /**
+     * The Host/Port formatted SocketAddress used by the connection object.
+     */
     private SocketAddress sockAddress;
-    private Socket conn; // The connection object.
+    
+    /**
+     * The connection (object) to the Remote Interlocking Module.
+     */
+    private Socket conn;
     
     /**
      * This is the constructor method for the RemoteInterlockingClient
@@ -38,13 +51,16 @@ public class RemoteInterlockingClient extends Thread {
 
         // Create a SockAddress object.
         try {
+            
             this.sockAddress = new InetSocketAddress(InetAddress.getByName(this.remoteInterlockingIP), this.remoteInterlockingPort);
+            
         } catch (UnknownHostException ex) {
+            
             dataLogger.sendToDataLogger (String.format ("%s%s: Invalid IP Address.%s",
                     Colour.RED.getColour(), getFailed(), Colour.RESET.getColour()),
                     true, true);
-            ExitCommandLine(String.format ("%sERROR: Cannot connect to the remote interlocking.%s",
-                    Colour.RED.getColour(), Colour.RESET.getColour()));
+            exitCommandLine();
+            
         }
     }
     
@@ -61,8 +77,7 @@ public class RemoteInterlockingClient extends Thread {
             dataLogger.sendToDataLogger (String.format ("%s%s%s",
                     Colour.RED.getColour(), getFailed(), Colour.RESET.getColour()),
                     true, true);
-            ExitCommandLine(String.format ("%sERROR: Cannot connect to the remote interlocking.%s",
-                Colour.RED.getColour(), Colour.RESET.getColour()));
+            exitCommandLine();
         }
         
     }
@@ -78,14 +93,12 @@ public class RemoteInterlockingClient extends Thread {
                 dataLogger.sendToDataLogger (String.format ("%s%s: Invalid IP Address.%s",
                         Colour.RED.getColour(), getFailed(), Colour.RESET.getColour()),
                         true, true);
-                ExitCommandLine(String.format ("%sERROR: Cannot connect to the remote interlocking.%s",
-                        Colour.RED.getColour(), Colour.RESET.getColour()));
+                exitCommandLine();
             } catch (IOException e) {
                 dataLogger.sendToDataLogger (String.format ("%s%s: Cannot find the Remote Interlocking Server.%s",
                         Colour.RED.getColour(), getFailed(), Colour.RESET.getColour()),
                         true, true);
-                ExitCommandLine(String.format ("%sERROR: Cannot connect to the remote interlocking.%s",
-                        Colour.RED.getColour(), Colour.RESET.getColour()));
+                exitCommandLine();
             }
         }
     }

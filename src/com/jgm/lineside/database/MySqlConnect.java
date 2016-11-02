@@ -1,11 +1,6 @@
 package com.jgm.lineside.database;
 
-import com.jgm.lineside.ApplicationUtilities;
 import com.jgm.lineside.LineSideModule;
-import static com.jgm.lineside.ApplicationUtilities.getFailed;
-import static com.jgm.lineside.ApplicationUtilities.getNewLine;
-import static com.jgm.lineside.ApplicationUtilities.getOK;
-import com.jgm.lineside.datalogger.Colour;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -84,10 +79,7 @@ public final class MySqlConnect {
                 Class.forName("com.mysql.jdbc.Driver").newInstance();
                 this.conn = (Connection)DriverManager.getConnection(conString, dbUserName, dbPassword);
                 
-            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException sqle) {
-                
-                System.exit(0);
-            }
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException sqle) {}
         }
     }
     

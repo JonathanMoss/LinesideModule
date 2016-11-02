@@ -51,23 +51,25 @@ import com.jgm.lineside.interlocking.MessageHandler;
 import com.jgm.lineside.interlocking.MessageType;
 import com.jgm.lineside.interlocking.RemoteInterlockingClient;
 import com.jgm.lineside.points.Points;
+import com.jgm.lineside.points.PointsPosition;
 import com.jgm.lineside.signals.AutomaticSignal;
 import com.jgm.lineside.signals.ControlledSignal;
+import com.jgm.lineside.signals.MovementAuthorityClass;
+import com.jgm.lineside.signals.RepeaterSignal;
 import com.jgm.lineside.signals.Signal;
 import com.jgm.lineside.signals.SignalAspect;
 import com.jgm.lineside.signals.SignalType;
-import customexceptions.AutomaticSignalsException;
-import customexceptions.ControlledSignalsException;
+import customexceptions.AutomaticSignalException;
+import customexceptions.ControlledSignalException;
 import customexceptions.DataLoggerException;
-import customexceptions.InvalidCommandLineArgument;
-import customexceptions.PointObjectException;
+import customexceptions.CommandLineException;
+import customexceptions.PointException;
 import customexceptions.RemoteInterlockingException;
+import customexceptions.TrainDetectionException;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * This class provides LineSide Module Functionality.
@@ -120,7 +122,7 @@ public class LineSideModule {
     /**
      * The version date of this software.
      */
-    private static final String VERSION_DATE = "27/10/2016";
+    private static final String VERSION_DATE = "01/11/2016";
     
     /**
      * The RemoteInterlocking Connection Object.
@@ -187,8 +189,6 @@ public class LineSideModule {
      */
     private static String[] commandLineArguments;
 
-    
-    
     /**
      * The Main Method (entry point) of the LineSideModule Class.
      * <p>
@@ -199,11 +199,12 @@ public class LineSideModule {
      */
     public static void main(String[] args) throws IOException, Exception {
        
-        commandLineArguments = args;
-        Signal.setSignalArray(ALL_SIGNALS_ARRAY);
+        commandLineArguments = args; // Get the command lines arguments into the static String array.
+        Signal.setSignalArray(ALL_SIGNALS_ARRAY); // Set the Signals Array.
         
+        // Instantiate and start the DataLoggerClient.
         dataLogger = new DataLoggerClient();
-        dataLogger.setName("DataLoggerThread");
+        dataLogger.setName("DataLogger-Thread");
         dataLogger.start();
         
         System.out.println(String.format ("LineSide Module v%s (%s) - Running startup script...", VERSION, VERSION_DATE));
@@ -211,98 +212,22 @@ public class LineSideModule {
         
         try {
             
-            Initialise.runStartUpScript();
+            Initialise.runStartUpScript(); // Run the start-up 'script'
             
-        } catch (InvalidCommandLineArgument | PointObjectException | ControlledSignalsException ex) {
+        } catch (CommandLineException | ControlledSignalException | TrainDetectionException | RemoteInterlockingException ex) {
             
-            dataLogger.sendToDataLogger(String.format ("%s%s '%s'%s", 
-                Colour.RED.getColour(), getFailed(), ex.getMessage(), Colour.RESET.getColour()), true, true);
-            exitCommandLine();
+            // The exceptions caught in this block prevent the LineSide Module from continuing to run.
+            dataLogger.sendToDataLogger(String.format ("%s%s: '%s'%s", 
+                Colour.RED.getColour(), getFailed(), ex.getMessage(), Colour.RESET.getColour()), true, true); // Send a message.
+            exitCommandLine(); // Exit the programme.
  
-        } catch (DataLoggerException ex) {
+        } catch (PointException | AutomaticSignalException | DataLoggerException ex) {
             
             dataLogger.sendToDataLogger(String.format ("%s%s '%s'%s", 
                 Colour.RED.getColour(), getFailed(), ex.getMessage(), Colour.RESET.getColour()), true, true);
             
         }
-        
-       
-                      
-
-          
-
-        
-            
-//        // 9) Build the Train Detection Sections.
-//            dataLogger.sendToDataLogger("Connected to remote DB - looking for Train Detection Sections assigned to this LineSide Module...", true, false);
-//            try {
-//                rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM Train_Detection WHERE parentLineSideModule = %d;", lsmIndexKey));
-//                int recordsReturned = 0;
-//                while (rs.next()) {
-//                    try {
-//                        TRAIN_DETECTION_ARRAY.add(new TrainDetection(rs.getString("identity"), TrainDetectionType.valueOf(rs.getString("type"))));
-//                        recordsReturned ++;
-//                    } catch (Exception ex) {
-//                        dataLogger.sendToDataLogger(String.format ("%s%s%s",
-//                            Colour.RED.getColour(), getFailed(), Colour.RESET.getColour()), 
-//                            true, true);
-//                        exitCommandLine(String.format ("%sERROR: Cannot obtain Train Detection details from the database.%s",
-//                            Colour.RED.getColour(), Colour.RESET.getColour()));
-//                    }
-//                }
-//                if (recordsReturned == 0) {
-//                    dataLogger.sendToDataLogger(String.format ("%s%s%s",
-//                        Colour.RED.getColour(), getFailed(), Colour.RESET.getColour()), 
-//                        true, true);
-//                     exitCommandLine(String.format ("%sERROR: Cannot obtain Train Detection details from the database.%s",
-//                        Colour.RED.getColour(), Colour.RESET.getColour()));
-//                }
-//                dataLogger.sendToDataLogger(String.format ("%s%s%s",
-//                    Colour.GREEN.getColour(), getOK(), Colour.RESET.getColour()),
-//                    true,true);
-//                System.out.println();
-//                dataLogger.sendToDataLogger(String.format ("%s%-26s%-18s%s%s",
-//                    Colour.BLUE.getColour(), "Train Detection Section", "Type", "Status", Colour.RESET.getColour()), 
-//                    true, true);
-//                dataLogger.sendToDataLogger(String.format ("%s--------------------------------------------------%s",
-//                    Colour.BLUE.getColour(), Colour.RESET.getColour()), 
-//                    true, true);
-//                for (int i = 0; i < TRAIN_DETECTION_ARRAY.size(); i++) {
-//                    dataLogger.sendToDataLogger(String.format("%s%-26s%-18s%-10s%s", 
-//                        Colour.BLUE.getColour(), TRAIN_DETECTION_ARRAY.get(i).getIdentity(), TRAIN_DETECTION_ARRAY.get(i).getType().toString(),
-//                        (TRAIN_DETECTION_ARRAY.get(i).getDetectionStatus().toString().contains("CLEAR"))? Colour.GREEN.getColour() + "CLEAR" + Colour.RESET.getColour() : Colour.RED.getColour() + "OCCUPIED" + Colour.RESET.getColour(), 
-//                        Colour.RESET.getColour()), 
-//                        true, true);
-//                }
-//                System.out.println();
-//            } catch (SQLException ex) {
-//                dataLogger.sendToDataLogger(String.format ("%s%s%s",
-//                    Colour.RED.getColour(), getFailed(), Colour.RESET.getColour()), 
-//                    true, true);
-//                 exitCommandLine(String.format ("%sERROR: Cannot obtain Train Detection details from the database.%s",
-//                    Colour.RED.getColour(), Colour.RESET.getColour()));
-//            }
-//        
-//        // 10) Open a connection to the Remote Interlocking.
-//            dataLogger.sendToDataLogger("Attempt a connection with the Remote Interlocking...", true, false);
-//            remoteInterlocking = new RemoteInterlockingClient(riHost, Integer.parseInt(riPort));
-//            remoteInterlocking.setName("RemoteInterlockingClient");
-//            remoteInterlocking.start();
-//            try {
-//                Thread.sleep(3000);
-//            } catch (InterruptedException ex) {
-//
-//            }
-//            
-//  
-            
-            //System.out.println();
-            
-        // 11) Wait for State Changes or Messages From the Remote Intelocking.
-        //TODO
-
-     
-  
+                
     }
     
     /**
@@ -332,10 +257,10 @@ public class LineSideModule {
      * This Method sends a message to the Remote Interlocking regarding a Controlled Signal object
      * @param signal <code>ControlledSignal</code> object that requires an update sending to the Remote Interlocking.
      */
-    public static void sendUpdateControlledSignal (ControlledSignal signal) {
+    public static void sendUpdateControlledSignal (Signal signal) {
         
-//        MessageHandler.addOutgoingMessageToStack(MessageType.STATE_CHANGE, String.format ("CONTROLLED_SIGNAL.%s.%s.%s",
-//            signal.getPrefix(), signal.getId(), signal.getCurrentAspect().toString()));
+        MessageHandler.addOutgoingMessageToStack(MessageType.STATE_CHANGE, String.format ("CONTROLLED_SIGNAL.%s.%s.%s",
+            signal.getPrefix(), signal.getIdentity(), signal.getCurrentAspect().toString()));
         
     }
     
@@ -343,12 +268,12 @@ public class LineSideModule {
      * This Method sends a message to the Remote Interlocking regarding an Automatic Signal object
      * @param signal <code>AutomaticSignal</code> object that requires an update sending to the Remote Interlocking.
      */
-//    public static void sendUpdateAutomaticSignal (AutomaticSignal signal) {
-//        
-//        MessageHandler.addOutgoingMessageToStack(MessageType.STATE_CHANGE, String.format ("AUTOMATIC_SIGNAL.%s.%s.%s",
-//            signal.getPrefix(), signal.getId(), signal.getCurrentAspect().toString()));
-//        
-//    }
+    public static void sendUpdateAutomaticSignal (Signal signal) {
+        
+        MessageHandler.addOutgoingMessageToStack(MessageType.STATE_CHANGE, String.format ("AUTOMATIC_SIGNAL.%s.%s.%s",
+            signal.getPrefix(), signal.getIdentity(), signal.getCurrentAspect().toString()));
+        
+    }
     
     /**
      * This Method sends a message to the Remote Interlocking regarding a Train Detection Section object
@@ -362,26 +287,25 @@ public class LineSideModule {
     }
     
     /**
-     * This method sends a status update for all assets to the Remote Interlocking.
+     * This method sends a status update for all line side assets to the Remote Interlocking.
      */
     public static void sendUpdateAll() {
         
-        // Points
+        // Update all Points
         for (int i = 0; i < POINTS_ARRAY.size(); i++) {
             sendUpdatePoints(POINTS_ARRAY.get(i));
         }
 
-        // Controlled Signals
-//        for (int i = 0; i < ALL_SIGNALS_ARRAY.size(); i++) {
-//            sendUpdateControlledSignal(ALL_SIGNALS_ARRAY.get(i));
-//        }
+        // Update all Signals
+        for (int i = 0; i < ALL_SIGNALS_ARRAY.size(); i++) {
+            if (ALL_SIGNALS_ARRAY.get(i) instanceof ControlledSignal) {
+                sendUpdateControlledSignal(ALL_SIGNALS_ARRAY.get(i));
+            } else {
+                sendUpdateAutomaticSignal(ALL_SIGNALS_ARRAY.get(i));
+            }
+        }
 
-        // Automatic Signals
-//        for (int i = 0; i < AUTOMATIC_SIGNAL_ARRAY.size(); i++) {
-//            sendUpdateAutomaticSignal(AUTOMATIC_SIGNAL_ARRAY.get(i));
-//        }
-
-        // Train Detection Sections
+        // Update all Train Detection Sections
         for (int i = 0; i < TRAIN_DETECTION_ARRAY.size(); i++) {
             sendUpdateTrainDetection(TRAIN_DETECTION_ARRAY.get(i));
         }
@@ -397,56 +321,129 @@ public class LineSideModule {
      * @param identity <code>String</code> containing the identity of the points.
      * @param requestedPosition <code>PointsPosition</code> the requested position of the points.
      */
-//    public static synchronized void incomingPointsRequest (String identity, PointsPosition requestedPosition) {
-//    
-//        POINTS_ARRAY.get(Points.returnPointIndex(identity)).movePointsUnderPower(requestedPosition);
-//         
-//    }
+    public static synchronized void incomingPointsRequest (String identity, PointsPosition requestedPosition) {
+    
+        POINTS_ARRAY.get(Points.returnPointIndex(identity)).movePointsUnderPower(requestedPosition);
+         
+    }
     
     /**
-     * This method receives and actions a request to display a particular aspect at a Controlled Signal.
+     * This method receives and actions a request from the Remote Interlocking concerning a Controlled Signal.
      * 
+     * This method is used to:  a) Replace a Signal to Danger;
+     *                          b) Set a signal from Entry to Exit and display the highest available aspect;
+     *                          c) Set a signal from Entry to Exit and display a restricted aspect;
+     *                          d) Set a signal from Entry to Exit and operate in Automatic Working.
+     *
      * Note: Compliance with the request is not guaranteed; the only guarantee is that an attempt shall be made to show the requested
      * Signal Aspect.
      * 
-     * @param prefix <code>String</code> The prefix of the Signal.
-     * @param identity <code>String</code> The identity of the Signal.
-     * @param requestedAspect <code>SignalAspect</code> The requested aspect.
+     * @param prefix <code>String</code> The prefix of the Signal. <i>Mandatory</i>
+     * @param identity <code>String</code> The identity of the Signal. <i>Mandatory</i>
+     * @param toPrefix <code>String</code> the prefix of the (exit) Signal. <i>Provided when a route is being set, otherwise 'null'</i>
+     * @param toIdentity <code>String</code> the identity of the (exit) Signal. <i>Provided when a route is being set, otherwise 'null'</i>
+     * @param moveAuthClass <code>MovementAuthorityClass</code> The MovementAuthorityClass constant. <i>Mandatory</i>
+     * @param requestedAspect <code>SignalAspect</code> The requested aspect. <i>Provided when a restricted aspect is required, otherwise 'null'</i>
      */
-    public static synchronized void incomingControlledSignalRequest (String prefix, String identity, SignalAspect requestedAspect) {
+    public static synchronized void incomingControlledSignalRequest (String prefix, String identity, String toPrefix, String toIdentity, MovementAuthorityClass moveAuthClass, SignalAspect requestedAspect) {
+     
+        Signal thisSignal = Signal.getSignalObject(prefix, identity); // Attempt to get the Signal Object.
+        
+        if (thisSignal != null) { // A valid Signal Object has been found and referenced.
+        
+            switch (moveAuthClass) {
+                
+                case SIGNAL_ON: // Place or Maintain the Controlled Signal to Danger.
+                    ((ControlledSignal) thisSignal).signalOn();
+                    break;
+                
+                case MAIN:
+                case WARNING:
+                
+                    if (toPrefix != null && toIdentity != null) {
+                        
+                        if (requestedAspect == null) {
+                        
+                            ((ControlledSignal) thisSignal).setSignal(toPrefix, toIdentity);
+                        
+                        } else {
+                    
+                            ((ControlledSignal) thisSignal).setSignal(toPrefix, toIdentity, requestedAspect);
+                    
+                        }
+                    }
+                    break;
+
+                case CALLING_ON:
+                case SHUNT:
+                
+                    if (toPrefix != null && toIdentity != null) {
+                    
+                        ((ControlledSignal) thisSignal).setSignal(toPrefix, toIdentity, SignalAspect.SUB_OFF);
+                    
+                    }
+                    break;
+                
+                case POSA:
+                
+                    if (toPrefix != null && toIdentity != null) {
+                    
+                        ((ControlledSignal) thisSignal).setSignal(toPrefix, toIdentity, SignalAspect.FLASHING_WHITE);
+                    
+                    }
+                    break;
+            }
+        }
+    }
     
-//        ALL_SIGNALS_ARRAY.get(ControlledSignal.returnControlledSignalIndex(String.format ("%s%s", 
-//            prefix, identity))).requestSignalAspect(requestedAspect);
+    /**
+     * This method sets an Automatic and Repeater Signal to either show the most or least restrictive signal aspect.
+     * 
+     * @param prefix <code>String</code> The prefix of the Signal. <i>Mandatory</i>
+     * @param identity <code>String</code> The identity of the Signal. <i>Mandatory</i>
+     * @param mostRestrictiveAspect <code>Boolean</code> <i>'true'</i> indicates the most restrictive aspect should be displayed, <i>'false'</i> indicates the least restrictive aspect.
+     */
+    public static synchronized void incomingAutomaticSignalRequest (String prefix, String identity, Boolean mostRestrictiveAspect) {
+    
+        Signal signalObject = Signal.getSignalObject(prefix, identity);
+        
+        if (signalObject != null) {
+            
+            signalObject.setDisplayHighestAspect(mostRestrictiveAspect);
+            
+        }
         
     }
     
     /**
-     * 
-     * @param prefix
-     * @param identity
-     * @param requestedAspect 
+     * This method returns the Identity of the Remote Interlocking associated with this LineSide Module.
+     * @return <code>String</code> The Identity of the Remote Interlocking associated with this LineSide Module.
      */
-    public static synchronized void incomingAutomaticSignalRequest (String prefix, String identity, SignalAspect requestedAspect) {
-        
-    }
-    
     public static String getRiIdentity() {
         return riIdentity;
     }
 
     /**
-     * This method returns a reference to the ArrayList that holds the 
-     * @return 
+     * This method returns a reference to the ArrayList that holds the Points Objects.
+     * @return <code>ArrayList</code> An ArrayList containing ALL points Objects.
      */
     public static ArrayList getPointsArray () {
         return POINTS_ARRAY;
     }
     
+    /**
+     * This method returns the LineSide Module Identity.
+     * @return <code>String</code> The identity of this LineSide Module.
+     */
     public static String getLineSideModuleIdentity() {
         return lsmIdentity;
     }
     
-    protected static void buildAutomaticSignals() throws AutomaticSignalsException {
+    /**
+     * This method builds the Automatic Signal Objects.
+     * @throws AutomaticSignalException 
+     */
+    protected static void buildAutomaticSignals() throws AutomaticSignalException {
     
         dataLogger.sendToDataLogger("Connected to remote DB - looking for non-controlled Signals assigned to this LineSide Module...", true, false);
         
@@ -458,14 +455,25 @@ public class LineSideModule {
             while (rs.next()) {
                 
                 try {
-
-                    ALL_SIGNALS_ARRAY.add(new AutomaticSignal(rs.getString("prefix"), rs.getString("identity"), 
-                        SignalType.valueOf(rs.getString("type")), rs.getString("applicable_signal_prefix"), rs.getString("applicable_signal_identity")));
+                    
+                    switch (SignalType.valueOf(rs.getString("type"))) {
+                        
+                        case BANNER:
+                        case COLOUR_LIGHT_REPEATER:
+                            ALL_SIGNALS_ARRAY.add(new RepeaterSignal(rs.getString("prefix"), rs.getString("identity"), 
+                                SignalType.valueOf(rs.getString("type")), rs.getString("applicable_signal_prefix"), rs.getString("applicable_signal_identity")));
+                            break;
+                        default:
+                           ALL_SIGNALS_ARRAY.add(new AutomaticSignal(rs.getString("prefix"), rs.getString("identity"), 
+                                SignalType.valueOf(rs.getString("type")), rs.getString("applicable_signal_prefix"), rs.getString("applicable_signal_identity"))); 
+                           break;
+                    }
+                    
                     recordsReturned ++;
                     
                 } catch (Exception ex) {
                     
-                    throw new AutomaticSignalsException ("Cannot obtain Automatic Signals from the Remote DataBase " + ex.getMessage());
+                    throw new AutomaticSignalException ("Cannot obtain Automatic Signals from the remote DB");
                     
                 }
             }
@@ -473,7 +481,7 @@ public class LineSideModule {
             
             if (recordsReturned == 0) {
                 
-                throw new AutomaticSignalsException ("Cannot obtain Automatic Signals from the Remote DataBase");
+                throw new AutomaticSignalException ("Cannot obtain Automatic Signals from the remote DB");
                 
             }
             
@@ -523,7 +531,7 @@ public class LineSideModule {
             
         } catch (SQLException ex) {
             
-            throw new AutomaticSignalsException ("Cannot obtain Automatic Signals from the Remote DataBase");
+            throw new AutomaticSignalException ("Cannot obtain Automatic Signals from the remote DB");
             
         }
     }
@@ -532,9 +540,9 @@ public class LineSideModule {
      * This method obtains the LineSide Module Identity from the Command Line Arguments, and validates it against the DataBase.
      * 
      * This method requires that the command line arguments have been passed to the correct String array prior to calling this method.
-     * @throws customexceptions.InvalidCommandLineArgument
+     * @throws customexceptions.CommandLineException
      */
-    protected static void validateCommandLineArguments() throws InvalidCommandLineArgument{
+    protected static void validateCommandLineArguments() throws CommandLineException{
     
         dataLogger.sendToDataLogger("Validating Command Line arguments...", true, false);
         
@@ -555,21 +563,21 @@ public class LineSideModule {
                         Colour.GREEN.getColour(), getOK(), Colour.BLUE.getColour(),lsmIdentity, Colour.RESET.getColour()), 
                         true, true);
                     
-                } catch (SQLException ex) {
+                } catch (SQLException  | NullPointerException ex) {
                     
-                    throw new InvalidCommandLineArgument("The LineSideModule Identity could not be validated with the Remote DataBase");
+                    throw new CommandLineException("The LineSideModule Identity could not be validated against the remote DB");
                     
                 }
                 
             } else { 
                 
-                throw new InvalidCommandLineArgument("Invalid module identity passed on the Command Line");
+                throw new CommandLineException("Invalid module identity passed on the Command Line");
                 
             }
             
         } else {
             
-            throw new InvalidCommandLineArgument("The Module Identity was not passed on the Command Line");
+            throw new CommandLineException("The Module Identity was not passed on the Command Line");
             
         }
         
@@ -579,6 +587,7 @@ public class LineSideModule {
      * This Method obtains the Remote Interlocking Details from the Remote DataBase.
      * 
      * This method requires that a LineSide Module identity has been established and validated before being called.
+     * @throws customexceptions.RemoteInterlockingException
      */
     protected static void obtainRemoteInterlockingDetails() throws RemoteInterlockingException {
     
@@ -586,7 +595,7 @@ public class LineSideModule {
         
         try {
             
-            rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM Remote_Interlocking WHERE index_key=%d;", riIndexKey));
+            rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM `Remote_Interlocking` WHERE `index_key` = %d;", riIndexKey));
             rs.first();
             riHost = rs.getString("ip_address");
             riPort = rs.getString("port_number");
@@ -600,7 +609,7 @@ public class LineSideModule {
            
         } catch (SQLException ex) {
             
-            throw new RemoteInterlockingException("Cannot obtain the Remote Interlocking details from the Remote DB");
+            throw new RemoteInterlockingException("Cannot obtain the Remote Interlocking details from the remote DB");
             
         }
     }
@@ -626,7 +635,7 @@ public class LineSideModule {
             
         } catch (SQLException ex) {
             
-            throw new DataLoggerException("Cannot obtain DataLogger Details from the Remote DB");
+            throw new DataLoggerException("Cannot obtain DataLogger Details from the remote DB");
             
         }
     }
@@ -648,9 +657,9 @@ public class LineSideModule {
      * This method builds the Points Objects.
      * 
      * This method also requires that the LineSide Module identity has been validated against the remote DB.
-     * @throws customexceptions.PointObjectException
+     * @throws customexceptions.PointException
      */
-    protected static void buildPoints() throws PointObjectException {
+    protected static void buildPoints() throws PointException {
     
         dataLogger.sendToDataLogger("Connected to remote DB - looking for Points assigned to this LineSide Module...",
             true,false);
@@ -689,17 +698,21 @@ public class LineSideModule {
                 
             } else {
                 
-                throw new PointObjectException("There are no points assigned to this LineSide Module within the Remote DB");
+                throw new PointException("There are no points assigned to this LineSide Module within the remote DB");
             }
             
         } catch (SQLException ex) {
             
-                throw new PointObjectException("Cannot obtain Points assigned to this Lineside Module from the Remote DB");
+                throw new PointException("Cannot obtain Points assigned to this Lineside Module from the remote DB");
                 
         }
     }
     
-    protected static void buildControlledSignals() throws ControlledSignalsException {
+    /**
+     * This method builds the Controlled Signals Objects.
+     * @throws ControlledSignalException 
+     */
+    protected static void buildControlledSignals() throws ControlledSignalException {
     
         dataLogger.sendToDataLogger("Connected to remote DB - looking for Controlled Signals assigned to this LineSide Module...", true, false);
         
@@ -716,14 +729,14 @@ public class LineSideModule {
                     
                 } catch (Exception ex) {
         
-                    throw new ControlledSignalsException ("Cannot obtain Controlled Signal details from the database");
+                    throw new ControlledSignalException ("Cannot obtain Controlled Signal details from the remote DB");
                     
                 }
             }
             
             if (recordsReturned == 0) {
 
-                throw new ControlledSignalsException ("Cannot obtain Controlled Signal details from the database");
+                throw new ControlledSignalException ("Cannot obtain Controlled Signal details from the remote DB");
                 
             }
             
@@ -752,13 +765,82 @@ public class LineSideModule {
             
         } catch (SQLException ex) {
         
-            throw new ControlledSignalsException ("Cannot obtain Controlled Signal details from the database");
+            throw new ControlledSignalException ("Cannot obtain Controlled Signal details from the remote DB");
             
         }
 
     }
     
+    /**
+     * This method builds the Train Detection Section Objects.
+     * @throws TrainDetectionException 
+     */
     protected static void buildTrainDetectionSections() throws TrainDetectionException {
+    
+        dataLogger.sendToDataLogger("Connected to remote DB - looking for Train Detection Sections assigned to this LineSide Module...", true, false);
+        
+        try {
+            
+            rs = MySqlConnect.getDbCon().query(String.format("SELECT * FROM `Train_Detection` WHERE `parentLineSideModule` = %d;", lsmIndexKey));
+            int recordsReturned = 0;
+            
+            while (rs.next()) {
+                
+                try {
+                    
+                    TRAIN_DETECTION_ARRAY.add(new TrainDetection(rs.getString("identity"), TrainDetectionType.valueOf(rs.getString("type"))));
+                    recordsReturned ++;
+                    
+                } catch (Exception ex) {
+
+                    throw new TrainDetectionException("Cannot obtain Train Detection Section details from the remote DB");
+                    
+                }
+            }
+            
+            if (recordsReturned == 0) {
+
+                throw new TrainDetectionException ("There are no Train Detection Sections associated with this LineSide Module within the remote DB");
+                
+            }
+            
+            dataLogger.sendToDataLogger(String.format ("%s%s%s",
+                Colour.GREEN.getColour(), getOK(), Colour.RESET.getColour()),
+                true,true);
+            System.out.println();
+            
+            dataLogger.sendToDataLogger(String.format ("%s%-26s%-18s%s%s",
+                Colour.BLUE.getColour(), "Train Detection Section", "Type", "Status", Colour.RESET.getColour()), 
+                true, true);
+            dataLogger.sendToDataLogger(String.format ("%s--------------------------------------------------%s",
+                Colour.BLUE.getColour(), Colour.RESET.getColour()), 
+                true, true);
+            for (int i = 0; i < TRAIN_DETECTION_ARRAY.size(); i++) {
+                dataLogger.sendToDataLogger(String.format("%s%-26s%-18s%-10s%s", 
+                    Colour.BLUE.getColour(), TRAIN_DETECTION_ARRAY.get(i).getIdentity(), TRAIN_DETECTION_ARRAY.get(i).getType().toString(),
+                    (TRAIN_DETECTION_ARRAY.get(i).getDetectionStatus().toString().contains("CLEAR"))? Colour.GREEN.getColour() + "CLEAR" + Colour.RESET.getColour() : Colour.RED.getColour() + "OCCUPIED" + Colour.RESET.getColour(), 
+                    Colour.RESET.getColour()), 
+                    true, true);
+            }
+            System.out.println();
+            
+        } catch (SQLException ex) {
+            
+           throw new TrainDetectionException("Cannot obtain Train Detection Section details from the remote DB");
+           
+        }
+    }
+    
+    /**
+     * This method attempts a connection to the Remote Interlocking Module.
+     * @throws RemoteInterlockingException 
+     */
+    protected static void attemptRemoteInterlockingConnection () throws RemoteInterlockingException {
+        
+        dataLogger.sendToDataLogger("Attempt a connection with the Remote Interlocking...", true, false);
+        remoteInterlocking = new RemoteInterlockingClient(riHost, Integer.parseInt(riPort));
+        remoteInterlocking.setName("RemoteInterlockingClient-Thread");
+        remoteInterlocking.start();
         
     }
 }

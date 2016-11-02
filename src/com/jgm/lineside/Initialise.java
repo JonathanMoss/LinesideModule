@@ -1,9 +1,11 @@
 package com.jgm.lineside;
 
 import static com.jgm.lineside.LineSideModule.attemptDataLoggerConnection;
+import static com.jgm.lineside.LineSideModule.attemptRemoteInterlockingConnection;
 import static com.jgm.lineside.LineSideModule.buildAutomaticSignals;
 import static com.jgm.lineside.LineSideModule.buildControlledSignals;
 import static com.jgm.lineside.LineSideModule.buildPoints;
+import static com.jgm.lineside.LineSideModule.buildTrainDetectionSections;
 import static com.jgm.lineside.LineSideModule.obtainDataLoggerConnectionDetails;
 import static com.jgm.lineside.LineSideModule.obtainRemoteInterlockingDetails;
 import static com.jgm.lineside.LineSideModule.validateCommandLineArguments;
@@ -25,10 +27,13 @@ public abstract class Initialise {
         
         while (LineSideModule.getLookingForDataLogger()) {}
         
-        obtainRemoteInterlockingDetails();
         buildPoints();
         buildControlledSignals();
         buildAutomaticSignals();
+        buildTrainDetectionSections();
+        
+        obtainRemoteInterlockingDetails();
+        attemptRemoteInterlockingConnection();
     
     }
     

@@ -40,7 +40,7 @@ public class Signal implements Signals {
      * 
      * @param prefix <code>String</code> The Prefix of the signal.
      * @param identity <code>String</code> The Identity of the signal.
-     * @return <code>Signak</code> The Signal Object.
+     * @return <code>Signal</code> The Signal Object.
      */
     public static Signal getSignalObject (String prefix, String identity) {
     

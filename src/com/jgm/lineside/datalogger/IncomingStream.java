@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- *
+ * This method provides a threaded DataInputStream object.
+ * 
+ * This is used to check that the connection to the DataLogger Server is open.
  * @author Jonathan Moss
  * @version v1.0 October 2016
  */

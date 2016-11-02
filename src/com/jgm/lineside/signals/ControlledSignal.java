@@ -57,6 +57,9 @@ public class ControlledSignal extends Signal {
         
     }
     
+    /**
+     * This method returns the controlled signal to danger.
+     */
     public void signalOn() {
         
         super.setDisplayHighestAspect(false);
