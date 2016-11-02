@@ -1,4 +1,4 @@
-package customexceptions;
+package com.jgm.customexceptions;
 /**
  * The class CommandLineException is a form of Exception that indicates conditions that a reasonable application might want to catch.
  * <p>

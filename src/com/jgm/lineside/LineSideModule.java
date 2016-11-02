@@ -59,13 +59,13 @@ import com.jgm.lineside.signals.RepeaterSignal;
 import com.jgm.lineside.signals.Signal;
 import com.jgm.lineside.signals.SignalAspect;
 import com.jgm.lineside.signals.SignalType;
-import customexceptions.AutomaticSignalException;
-import customexceptions.ControlledSignalException;
-import customexceptions.DataLoggerException;
-import customexceptions.CommandLineException;
-import customexceptions.PointException;
-import customexceptions.RemoteInterlockingException;
-import customexceptions.TrainDetectionException;
+import com.jgm.customexceptions.AutomaticSignalException;
+import com.jgm.customexceptions.ControlledSignalException;
+import com.jgm.customexceptions.DataLoggerException;
+import com.jgm.customexceptions.CommandLineException;
+import com.jgm.customexceptions.PointException;
+import com.jgm.customexceptions.RemoteInterlockingException;
+import com.jgm.customexceptions.TrainDetectionException;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -540,7 +540,7 @@ public class LineSideModule {
      * This method obtains the LineSide Module Identity from the Command Line Arguments, and validates it against the DataBase.
      * 
      * This method requires that the command line arguments have been passed to the correct String array prior to calling this method.
-     * @throws customexceptions.CommandLineException
+     * @throws com.jgm.customexceptions.CommandLineException
      */
     protected static void validateCommandLineArguments() throws CommandLineException{
     
@@ -587,7 +587,7 @@ public class LineSideModule {
      * This Method obtains the Remote Interlocking Details from the Remote DataBase.
      * 
      * This method requires that a LineSide Module identity has been established and validated before being called.
-     * @throws customexceptions.RemoteInterlockingException
+     * @throws com.jgm.customexceptions.RemoteInterlockingException
      */
     protected static void obtainRemoteInterlockingDetails() throws RemoteInterlockingException {
     
@@ -616,7 +616,7 @@ public class LineSideModule {
     
     /**
      * This method obtains the DataLogger details from the remote DB.
-     * @throws customexceptions.DataLoggerException
+     * @throws com.jgm.customexceptions.DataLoggerException
      */
     protected static void obtainDataLoggerConnectionDetails() throws DataLoggerException {
     
@@ -645,7 +645,7 @@ public class LineSideModule {
      * 
      * This method requires that the DataLogger connection details have been obtained from the remote DB before calling this method.
      * This method also requires that the LineSide Module identity has been validated against the remote DB.
-     * @throws customexceptions.DataLoggerException
+     * @throws com.jgm.customexceptions.DataLoggerException
      */
     protected static void attemptDataLoggerConnection() throws DataLoggerException {
         
@@ -657,7 +657,7 @@ public class LineSideModule {
      * This method builds the Points Objects.
      * 
      * This method also requires that the LineSide Module identity has been validated against the remote DB.
-     * @throws customexceptions.PointException
+     * @throws com.jgm.customexceptions.PointException
      */
     protected static void buildPoints() throws PointException {
     

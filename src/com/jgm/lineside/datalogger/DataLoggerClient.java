@@ -4,7 +4,7 @@ import static com.jgm.lineside.ApplicationUtilities.getFailed;
 import static com.jgm.lineside.ApplicationUtilities.getNewLine;
 import static com.jgm.lineside.ApplicationUtilities.getOK;
 import com.jgm.lineside.LineSideModule;
-import customexceptions.DataLoggerException;
+import com.jgm.customexceptions.DataLoggerException;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -97,7 +97,7 @@ public class DataLoggerClient extends Thread {
      * @param dataLoggerIP A <code>String</code> containing the IP address of the Data Logger.
      * @param dataLoggerPort An <code>int</code> containing the listening port number of the Data Logger.
      * @param moduleIdentity A <code>String</code> that details the identity of the module that requires a connection to the DataLogger.
-     * @throws customexceptions.DataLoggerException
+     * @throws com.jgm.customexceptions.DataLoggerException
      */
     public synchronized void DataLoggerClientConnect(String dataLoggerIP, int dataLoggerPort, String moduleIdentity) throws DataLoggerException {
         

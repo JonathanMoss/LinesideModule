@@ -1,18 +1,18 @@
-package customexceptions;
+package com.jgm.customexceptions;
 /**
- * The class ControlledSignalException is a form of Exception that indicates conditions that a reasonable application might want to catch.
+ * The class RemoteInterlockingException is a form of Exception that indicates conditions that a reasonable application might want to catch.
  * <p>
  * This Custom Exception is used to catch the condition where conditions concerning the DataLogger are invalid or cause an error.
  * @author Jonathan Moss
  * @version v1.0 October 2016
  */
-public class ControlledSignalException extends Exception{
+public class RemoteInterlockingException extends Exception{
 
     /**
      * Constructs a new exception with the specified detail message.
      * @param message <code>String</code>  the detail message (which is saved for later retrieval by the getMessage() method).
      */
-    public ControlledSignalException (String message) {
+    public RemoteInterlockingException (String message) {
         super(message);
     }
     
