@@ -93,12 +93,9 @@ public abstract class MessageHandler {
                                                                             SignalAspect.valueOf(splitMessage[6]));
                             break;
                         case "AUTOMATIC_SIGNAL":
-                            LineSideModule.incomingControlledSignalRequest( splitMessage[1], 
+                            LineSideModule.incomingAutomaticSignalRequest(  splitMessage[1], 
                                                                             splitMessage[2], 
-                                                                            splitMessage[3], 
-                                                                            splitMessage[4], 
-                                                                            MovementAuthorityClass.valueOf(splitMessage[5]),
-                                                                            SignalAspect.valueOf(splitMessage[6]));
+                                                                            Boolean.valueOf(splitMessage[3]));
                             break;
                                     
                     }
