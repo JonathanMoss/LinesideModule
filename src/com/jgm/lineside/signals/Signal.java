@@ -1,5 +1,7 @@
 package com.jgm.lineside.signals;
 
+import static com.jgm.lineside.interlocking.MessageHandler.addOutgoingMessageToStack;
+import com.jgm.lineside.interlocking.MessageType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -372,8 +374,25 @@ public class Signal implements Signals {
             // If the aspect has changed, make sure that all signals in rear that need notification have been notified.
             if (this.currentAspect != newAspect) {
                 
+                String sigType = null;
+                
+                if (this instanceof ControlledSignal) {
+                    
+                    sigType = "CONTROLLED_SIGNAL";
+                    
+                } else if (this instanceof AutomaticSignal || this instanceof RepeaterSignal) {
+                    
+                    sigType = "AUTOMATIC_SIGNAL";
+                    
+                }
+                
                 this.currentAspect = newAspect;
                 this.updateSignalsInRear(); // We only provide updates to Signals In Rear here to make sure that we dont send an update every time.
+                addOutgoingMessageToStack(MessageType.STATE_CHANGE, String.format ("%s.%s.%s.%s",
+                    sigType,
+                    this.getPrefix(),
+                    this.getIdentity(),
+                    this.getCurrentAspect()));
                 
             }
             

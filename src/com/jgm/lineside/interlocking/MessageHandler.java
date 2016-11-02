@@ -187,6 +187,7 @@ public abstract class MessageHandler {
         *   Messages must be formatted thus: SENDER|TYPE|BODY|HASH|END_MESSAGE
         */
         
+        System.out.println(message);
         String[] splitMessage = message.split("\\|");
         
         try {
@@ -220,7 +221,7 @@ public abstract class MessageHandler {
             }
             
             // Check to make sure that the message body contains valid text.
-            if (!splitMessage[2].matches("^[A-Z_0-9.-]{4,}$")) {
+            if (!splitMessage[2].matches("^[A-Za-z_0-9.-_]{4,}$")) {
                 throw new IOException ("Invalid message body");
             }
            
