@@ -51,6 +51,7 @@ public class Signal implements Signals {
                 return SIGNAL_ARRAY.get(i);
             }
         }
+        System.out.println("Cant find the signal! " + prefix + identity);
         return null;
     }
     

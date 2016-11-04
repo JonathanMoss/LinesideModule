@@ -90,7 +90,7 @@ public abstract class MessageHandler {
                                                                             splitMessage[3], 
                                                                             splitMessage[4], 
                                                                             MovementAuthorityClass.valueOf(splitMessage[5]),
-                                                                            SignalAspect.valueOf(splitMessage[6]));
+                                                                            splitMessage[6]);
                             break;
                         case "AUTOMATIC_SIGNAL":
                             LineSideModule.incomingAutomaticSignalRequest(  splitMessage[1], 

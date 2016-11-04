@@ -334,7 +334,7 @@ public class LineSideModule {
      * @param moveAuthClass <code>MovementAuthorityClass</code> The MovementAuthorityClass constant. <i>Mandatory</i>
      * @param requestedAspect <code>SignalAspect</code> The requested aspect. <i>Provided when a restricted aspect is required, otherwise 'null'</i>
      */
-    public static synchronized void incomingControlledSignalRequest (String prefix, String identity, String toPrefix, String toIdentity, MovementAuthorityClass moveAuthClass, SignalAspect requestedAspect) {
+    public static synchronized void incomingControlledSignalRequest (String prefix, String identity, String toPrefix, String toIdentity, MovementAuthorityClass moveAuthClass, String requestedAspect) {
      
         Signal thisSignal = Signal.getSignalObject(prefix, identity); // Attempt to get the Signal Object.
         
@@ -351,13 +351,13 @@ public class LineSideModule {
                 
                     if (toPrefix != null && toIdentity != null) {
                         
-                        if (requestedAspect == null) {
+                        if (requestedAspect.equals("null")) {
                         
                             ((ControlledSignal) thisSignal).setSignal(toPrefix, toIdentity);
                         
                         } else {
                     
-                            ((ControlledSignal) thisSignal).setSignal(toPrefix, toIdentity, requestedAspect);
+                            ((ControlledSignal) thisSignal).setSignal(toPrefix, toIdentity, SignalAspect.valueOf(requestedAspect));
                     
                         }
                     }
