@@ -14,6 +14,6 @@ package com.jgm.lineside.interlocking;
  */
 public enum MessageType {
     
-    ACK, STATE_CHANGE, REQUEST;
+    ACK, STATE_CHANGE, REQUEST, TECHNICIAN;
     
 }

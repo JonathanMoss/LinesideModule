@@ -3,10 +3,12 @@ package com.jgm.lineside.interlocking;
 import com.jgm.lineside.LineSideModule;
 import com.jgm.lineside.points.PointsPosition;
 import com.jgm.lineside.signals.MovementAuthorityClass;
+import com.jgm.lineside.signals.Signal;
 import com.jgm.lineside.signals.SignalAspect;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.LinkedList;
+import java.util.Map;
 
 /**
  * This Class provides static methods to handle and process incoming and outgoing messages.
@@ -57,6 +59,9 @@ public abstract class MessageHandler {
     public static synchronized void processIncomingMessages() {
     
         while (!INCOMING_STACK.isEmpty()) { // Proceed if there are messages in the Incoming Message Stack (Queue)
+            
+            String[] splitMessage;
+            
             switch (INCOMING_STACK.get(0).getMsgType()) { // Get the type of message.
                 
                 case ACK:
@@ -78,7 +83,7 @@ public abstract class MessageHandler {
                     *   SIGNAL.CE.110.CE.112.MAIN.NULL
                     *   SIGNAL.CE.110.CE.112.MAIN.YELLOW
                     */
-                    String[] splitMessage = INCOMING_STACK.get(0).getMsgBody().split("\\.");
+                    splitMessage = INCOMING_STACK.get(0).getMsgBody().split("\\.");
                     switch (splitMessage[0]) {
                         case "POINTS":
                             LineSideModule.incomingPointsRequest(   splitMessage[1], 
@@ -101,7 +106,46 @@ public abstract class MessageHandler {
                     }
                     
                     break;
-                       
+                
+                case TECHNICIAN:
+                    
+                    splitMessage = INCOMING_STACK.get(0).getMsgBody().split("\\.");
+                    switch (splitMessage[0]) {
+                        case "GET_LAMPS_ALL":
+                            // "GET_LAMPS_ALL.CE.115"
+                            Map signalLamps = Signal.getSignalObject(splitMessage[2], splitMessage[3]).getSignalLampMap();
+                            signalLamps.forEach((key, value) -> {
+                            
+                                if ((Boolean) value) {
+                                    
+                                    addOutgoingMessageToStack(MessageType.TECHNICIAN, String.format ("LAMP_OK.%s.%s.%s", 
+                                        key.toString(), splitMessage[2], splitMessage[3]));
+                                    
+                                } else {
+                                    
+                                    addOutgoingMessageToStack(MessageType.TECHNICIAN, String.format ("LAMP_FAIL.%s.%s.%s", 
+                                        key.toString(), splitMessage[2], splitMessage[3]));
+                                    
+                                }
+                            
+                            });
+                            break;
+                            
+                        case "FAIL_LAMP":
+                            // "FAIL_LAMP.RED.CE.115"
+                            Signal.getSignalObject(splitMessage[2], splitMessage[3]).failSignalLamp(SignalAspect.valueOf(splitMessage[1]));
+                            addOutgoingMessageToStack(MessageType.TECHNICIAN, String.format ("LAMP_FAIL.%s.%s.%s",
+                                splitMessage[1], splitMessage[2], splitMessage[3]));
+                            break;
+                            
+                        case "RESTORE_LAMP":
+                            // "RESTORE_LAMP.RED.CE.115"
+                            Signal.getSignalObject(splitMessage[2], splitMessage[3]).restoreSignalLamp(SignalAspect.valueOf(splitMessage[1]));
+                            addOutgoingMessageToStack(MessageType.TECHNICIAN, String.format ("LAMP_OK.%s.%s.%s",
+                                splitMessage[1], splitMessage[2], splitMessage[3]));
+                            break;
+                    }
+                    break;
             }
             
             INCOMING_STACK.remove(0); // Remove the message we have just processed from the message stack.
