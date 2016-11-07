@@ -113,18 +113,18 @@ public abstract class MessageHandler {
                     switch (splitMessage[0]) {
                         case "GET_LAMPS_ALL":
                             // "GET_LAMPS_ALL.CE.115"
-                            Map signalLamps = Signal.getSignalObject(splitMessage[2], splitMessage[3]).getSignalLampMap();
+                            Map signalLamps = Signal.getSignalObject(splitMessage[1], splitMessage[2]).getSignalLampMap();
                             signalLamps.forEach((key, value) -> {
                             
                                 if ((Boolean) value) {
                                     
                                     addOutgoingMessageToStack(MessageType.TECHNICIAN, String.format ("LAMP_OK.%s.%s.%s", 
-                                        key.toString(), splitMessage[2], splitMessage[3]));
+                                        key.toString(), splitMessage[1], splitMessage[2]));
                                     
                                 } else {
                                     
                                     addOutgoingMessageToStack(MessageType.TECHNICIAN, String.format ("LAMP_FAIL.%s.%s.%s", 
-                                        key.toString(), splitMessage[2], splitMessage[3]));
+                                        key.toString(), splitMessage[1], splitMessage[2]));
                                     
                                 }
                             

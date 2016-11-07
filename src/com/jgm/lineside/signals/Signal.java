@@ -320,6 +320,8 @@ public class Signal implements Signals {
             this.signalLamps.replace(aspect, false);
         }
         
+        this.DisplayAspect(this.currentAspect);
+        
     }
 
     @Override
@@ -328,6 +330,8 @@ public class Signal implements Signals {
         if (this.signalLamps.containsKey(aspect)) {
             this.signalLamps.replace(aspect, true);
         }
+        
+        this.DisplayAspect(this.calculateBestAspect());
         
     }
 
